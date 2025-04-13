@@ -60,6 +60,7 @@
             "bloop16 <info@amring.xyz>"
         ],
         "keywords": [
+            "ioBroker",
             "steam",
             "gaming",
             "game",
@@ -222,9 +223,18 @@
                     "zh-cn": "玩家状态"
                 },
                 "type": "number",
-                "role": "state",
+                "role": "value.state",
                 "read": true,
-                "write": false
+                "write": false,
+                "states": {
+                    "0": "Offline",
+                    "1": "Online",
+                    "2": "Busy",
+                    "3": "Away",
+                    "4": "Snooze",
+                    "5": "Looking to Trade",
+                    "6": "Looking to Play"
+                }
             },
             "native": {}
         },
