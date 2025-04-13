@@ -15,32 +15,6 @@
         "pl": "\nstały katalog stanu",
         "uk": "\nфіксований державний каталог",
         "zh-cn": "\n固定状态目录"
-      },
-      "0.0.1": {
-        "en": "initial release",
-        "de": "Erstveröffentlichung",
-        "ru": "Начальная версия",
-        "pt": "lançamento inicial",
-        "nl": "Eerste uitgave",
-        "fr": "Première version",
-        "it": "Versione iniziale",
-        "es": "Versión inicial",
-        "pl": "Pierwsze wydanie",
-        "uk": "Початкова версія",
-        "zh-cn": "首次出版"
-      },
-      "0.0.2": {
-        "en": "First working Version",
-        "de": "Erste funktionierende Version",
-        "ru": "Первая рабочая версия",
-        "pt": "Primeira versão funcional",
-        "nl": "Eerste werkende versie",
-        "fr": "Première version fonctionnelle",
-        "it": "Prima versione funzionante",
-        "es": "Primera versión funcional",
-        "pl": "Pierwsza działająca wersja",
-        "uk": "Перша робоча версія",
-        "zh-cn": "第一个工作版本"
       }
     },
     "titleLang": {
@@ -58,7 +32,7 @@
     },
     "desc": {
       "en": "Adapter to Support die Steam API",
-      "de": "Adapter zur Unterstützung der Dampf -API",
+      "de": "Adapter zur Unterstützung der Steam-API",
       "ru": "Адаптер для поддержки Steam API",
       "pt": "Adaptador para apoiar a API do Steam Die",
       "nl": "Adapter ter ondersteuning van die Steam API",
@@ -73,7 +47,6 @@
       "bloop16 <info@amring.xyz>"
     ],
     "keywords": [
-      "ioBroker",
       "steam",
       "gaming",
       "game",
@@ -110,7 +83,9 @@
       }
     ]
   },
-  "protectedNative": [],
+  "protectedNative": [
+    "apiKey"
+  ],
   "encryptedNative": [
     "apiKey"
   ],
