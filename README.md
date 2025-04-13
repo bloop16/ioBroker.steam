@@ -39,6 +39,8 @@ After installing and configuring the adapter, the Steam profile information and 
 
 ## Changelog
 
+### **WORK IN PROGRESS**
+
 ### 0.0.2 (2025-04-13)
 * (bloop16) First working Version
     * Steam profile information integration
