@@ -81,14 +81,14 @@
             {
                 "admin": ">=7.0.23"
             }
-        ],
-        "protectedNative": [
-            "apiKey"
-        ],
-        "encryptedNative": [
-            "apiKey"
         ]
     },
+    "protectedNative": [
+        "apiKey"
+    ],
+    "encryptedNative": [
+        "apiKey"
+    ],
     "native": {
         "steamName": "YOUR_STEAM_NAME",
         "apiKey": "YOUR_API_KEY"

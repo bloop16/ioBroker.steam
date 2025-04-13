@@ -5,22 +5,22 @@
 		"steamName": {
             "type": "text",
             "label": "Steam Name",
-            "xs": 4,
-            "sm": 6,
+            "xs": 12,
+            "sm": 12,
             "md": 6,
-            "lg": 12,
-            "xl": 16,
+            "lg": 4,
+            "xl": 4,
             "help": "Name of the Steam user",
             "newLine": true
         },
 		"apiKey": {
             "type": "text",
             "label": "Steam API Key",
-            "xs": 4,
-            "sm": 6,
+            "xs": 12,
+            "sm": 12,
             "md": 6,
-            "lg": 12,
-            "xl": 16,
+            "lg": 4,
+            "xl": 4,
             "newLine": true,
             "help": "Generate API Key <a href=\"https://steamcommunity.com/dev/apikey\" target=\"_blank\">here</a>"
 		}
