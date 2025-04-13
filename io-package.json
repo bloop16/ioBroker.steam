@@ -98,15 +98,64 @@
         ]
     },
     "protectedNative": [],
-       
     "encryptedNative": [
-        "apiKey"
-    ],
+            "apiKey"
+        ],
     "native": {
         "steamName": "YOUR_STEAM_NAME",
         "apiKey": "YOUR_API_KEY"
     },
-    "objects": [],
+    "objects": [
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Device or Service connected",
+                    "de": "Gerät oder Dienst verbunden",
+                    "ru": "Устройство или сервис подключен",
+                    "pt": "Dispositivo ou serviço conectado",
+                    "nl": "Apparaat of service verbonden",
+                    "fr": "Appareil ou service connecté",
+                    "it": "Dispositivo o servizio connesso",
+                    "es": "Dispositivo o servicio conectado",
+                    "pl": "Urządzenie lub usługa podłączona",
+                    "uk": "Пристрій або сервіс підключено",
+                    "zh-cn": "设备或服务已连接"
+                },
+                "type": "boolean",
+                "role": "indicator.connected",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playerName",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Player Name",
+                    "de": "Spielername",
+                    "ru": "Имя игрока",
+                    "pt": "Nome do jogador",
+                    "nl": "Spelernaam",
+                    "fr": "Nom du joueur",
+                    "it": "Nome del giocatore",
+                    "es": "Nombre del jugador",
+                    "pl": "Nazwa gracza",
+                    "uk": "Ім'я гравця",
+                    "zh-cn": "玩家姓名"
+                },
+                "type": "string",
+                "role": "state",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        }
+    ],
     "instanceObjects": [
         {
             "_id": "info.connection",
