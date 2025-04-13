@@ -17,6 +17,7 @@ class Steam extends utils.Adapter {
 
 		this.requestInterval = null;
 		this.dailyRequestCount = 0;
+		this.resetTimeout = null;
 	}
 
 	async onReady() {
@@ -94,7 +95,12 @@ class Steam extends utils.Adapter {
 			return;
 		}
 
-		setTimeout(async () => {
+		// Clear any existing timeout
+		if (this.resetTimeout) {
+			clearTimeout(this.resetTimeout);
+		}
+
+		this.resetTimeout = setTimeout(async () => {
 			this.dailyRequestCount = 0;
 			this.log.info("Daily request count reset.");
 			if (this.log.level === "debug") {
@@ -232,6 +238,9 @@ class Steam extends utils.Adapter {
 			this.setConnected(false);
 			if (this.requestInterval) {
 				clearInterval(this.requestInterval);
+			}
+			if (this.resetTimeout) {
+				clearTimeout(this.resetTimeout);
 			}
 			callback();
 		} catch (e) {

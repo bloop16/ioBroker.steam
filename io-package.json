@@ -47,10 +47,11 @@
             "bloop16 <info@amring.xyz>"
         ],
         "keywords": [
-            "ioBroker",
-            "api",
             "steam",
-            "gaming"
+            "gaming",
+            "game",
+            "profile",
+            "player"
         ],
         "licenseInformation": {
             "type": "free",
@@ -73,14 +74,19 @@
         },
         "dependencies": [
             {
-                "js-controller": ">=6.0.11",
-                "axios": "^1.5.0"
+                "js-controller": ">=6.0.11"
             }
         ],
         "globalDependencies": [
             {
-                "admin": "7.0.23"
+                "admin": ">=7.0.23"
             }
+        ],
+        "protectedNative": [
+            "apiKey"
+        ],
+        "encryptedNative": [
+            "apiKey"
         ]
     },
     "native": {

@@ -9,9 +9,11 @@
   "homepage": "https://github.com/bloop16/ioBroker.steam",
   "license": "MIT",
   "keywords": [
-    "ioBroker",
     "steam",
-    "api"
+    "gaming",
+    "game",
+    "profile",
+    "player"
   ],
   "repository": {
     "type": "git",
@@ -21,8 +23,8 @@
     "node": ">= 20"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^3.2.3",
-    "axios": "^1.5.0",
+    "@iobroker/adapter-core": "^2.6.8",
+    "axios": "^0.27.2",
     "node-html-parser": "^7.0.1"
   },
   "devDependencies": {

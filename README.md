@@ -1,4 +1,3 @@
-.md -->
 ![Logo](admin/steam.png)
 
 # ioBroker.steam
@@ -39,13 +38,13 @@ This adapter allows you to integrate information from the Steam API into your io
 After installing and configuring the adapter, the Steam profile information and API request statistics will be available as states in ioBroker. You can use these states in your ioBroker scripts and visualizations.
 
 ## Changelog
-<!--
-	Placeholder for the next version (at the beginning of the line):
-	### **WORK IN PROGRESS**
--->
 
-### **WORK IN PROGRESS**
+### 0.0.1 (2025-04-13)
 * (bloop16) initial release
+    * Steam profile information integration
+    * API request management with daily limits
+    * Automatic reset of request counter
+    * Secure API key storage
 
 ## License
 MIT License
