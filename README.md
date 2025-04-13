@@ -41,7 +41,6 @@ After installing and configuring the adapter, the Steam profile information and 
 
 ### **WORK IN PROGRESS**
 
-### 0.0.3 (2025-04-13)
 * (bloop16)
     * fixed state directory
 
