@@ -1,6 +1,6 @@
 {
   "name": "iobroker.steam",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Adapter to Support die Steam API",
   "author": {
     "name": "bloop16",
@@ -9,7 +9,7 @@
   "homepage": "https://github.com/bloop16/ioBroker.steam",
   "license": "MIT",
   "keywords": [
-    "iobroker",
+    "ioBroker",
     "steam",
     "gaming",
     "game",
