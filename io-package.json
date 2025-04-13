@@ -105,8 +105,9 @@
         "steamName": "YOUR_STEAM_NAME",
         "apiKey": "YOUR_API_KEY"
     },
-    "objects": [
-        {
+    "objects": [],
+    "instanceObjects": [
+                {
             "_id": "info.connection",
             "type": "state",
             "common": {
@@ -154,9 +155,7 @@
                 "write": false
             },
             "native": {}
-        }
-    ],
-    "instanceObjects": [
+        },
         {
             "_id": "info.connection",
             "type": "state",
