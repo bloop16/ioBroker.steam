@@ -39,7 +39,7 @@ After installing and configuring the adapter, the Steam profile information and 
 
 ## Changelog
 
-### 1.0.0 (2025-04-13)
+### 0.0.2 (2025-04-13)
 * (bloop16) First working Version
     * Steam profile information integration
     * API request management with daily limits

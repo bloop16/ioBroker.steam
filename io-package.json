@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "steam",
-        "version": "1.0.0",
+        "version": "0.0.2",
         "news": {
             "0.0.1": {
                 "en": "initial release",
@@ -16,7 +16,7 @@
                 "uk": "Початкова версія",
                 "zh-cn": "首次出版"
             },
-            "1.0.0": {
+            "0.0.2": {
                 "en": "First working Version",
                 "de": "Erste funktionierende Version",
                 "ru": "Первая рабочая версия",
