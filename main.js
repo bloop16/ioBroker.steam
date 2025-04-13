@@ -1,167 +1,277 @@
 "use strict";
 
-/*
- * Created with @iobroker/create-adapter v2.6.5
- */
-
-// The adapter-core module gives you access to the core ioBroker functions
-// you need to create an adapter
 const utils = require("@iobroker/adapter-core");
-
-// Load your modules here, e.g.:
-// const fs = require("fs");
+const axios = require("axios");
 
 class Steam extends utils.Adapter {
-
-	/**
-	 * @param {Partial<utils.AdapterOptions>} [options={}]
-	 */
 	constructor(options) {
 		super({
 			...options,
 			name: "steam",
 		});
+
 		this.on("ready", this.onReady.bind(this));
 		this.on("stateChange", this.onStateChange.bind(this));
-		// this.on("objectChange", this.onObjectChange.bind(this));
-		// this.on("message", this.onMessage.bind(this));
+		this.on("message", this.onMessage.bind(this));
 		this.on("unload", this.onUnload.bind(this));
+
+		this.requestInterval = null;
+		this.dailyRequestCount = 0;
 	}
 
-	/**
-	 * Is called when databases are connected and adapter received configuration.
-	 */
 	async onReady() {
-		// Initialize your adapter here
+		await this.checkAndCreateStates();
 
-		// The adapters config (in the instance object everything under the attribute "native") is accessible via
-		// this.config:
-		this.log.info("config option1: " + this.config.option1);
-		this.log.info("config option2: " + this.config.option2);
+		this.setState("info.connection", false, true);
 
-		/*
-		For every state in the system there has to be also an object of type state
-		Here a simple template for a boolean variable named "testVariable"
-		Because every adapter instance uses its own unique namespace variable names can't collide with other adapters variables
-		*/
-		await this.setObjectNotExistsAsync("testVariable", {
+		const apiKey = this.config.apiKey;
+		const steamName = this.config.steamName;
+
+		if (!apiKey || !steamName) {
+			this.log.error("API Key and Steam Name required.");
+			this.setConnected(false);
+			return;
+		}
+
+		this.log.info(`API Key: ${apiKey.substring(0, 4)}...${apiKey.slice(-4)}`);
+		this.log.info(`Steam Name: ${steamName}`);
+
+		try {
+			const steamID64 = await this.resolveSteamID(steamName);
+			if (!steamID64) {
+				this.log.error("Could not resolve Steam ID.");
+				this.setConnected(false);
+				return;
+			}
+			this.log.info(`Resolved Steam ID64: ${steamID64}`);
+			this.log.debug(`Steam ID64: ${steamID64}`);
+
+			await this.createOrUpdateState("steamID64", steamID64, "string", "Steam ID64");
+
+			this.setConnected(true);
+
+			// Reset daily request count at midnight
+			await this.resetDailyRequestCount();
+
+			// Initial fetch and start interval
+			await this.fetchAndSetData(apiKey, steamID64);
+			this.requestInterval = setInterval(async () => {
+				await this.fetchAndSetData(apiKey, steamID64);
+			}, 10800); // ~10 seconds
+
+		} catch (error) {
+			this.log.error(`Error: ${error}`);
+			this.setConnected(false);
+		}
+	}
+
+	async fetchAndSetData(apiKey, steamID64) {
+		try {
+			if (this.dailyRequestCount < 8000) {
+				await this.getPlayerSummaries(apiKey, steamID64);
+				this.dailyRequestCount++;
+				if (this.log.level === "debug") {
+					this.log.debug(`Daily Request Count: ${this.dailyRequestCount}`);
+					await this.setStateAsync("info.dailyRequestCount", { val: this.dailyRequestCount, ack: true });
+				}
+			} else {
+				this.log.warn("Daily API request limit reached.");
+			}
+		} catch (error) {
+			this.log.error(`Error fetching and setting data: ${error}`);
+		}
+	}
+
+	async resetDailyRequestCount() {
+		const now = new Date();
+		const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+		const msToMidnight = midnight.getTime() - now.getTime();
+
+		// Check if the adapter was restarted after midnight
+		const lastReset = await this.getStateAsync("info.dailyRequestCountReset");
+		if (lastReset && lastReset.val && typeof lastReset.val === "string" && new Date(lastReset.val).getTime() > now.getTime()) {
+			this.log.debug("Daily request count already reset today.");
+			return;
+		}
+
+		setTimeout(async () => {
+			this.dailyRequestCount = 0;
+			this.log.info("Daily request count reset.");
+			if (this.log.level === "debug") {
+				this.log.debug(`Daily Request Count: ${this.dailyRequestCount}`);
+				await this.setStateAsync("info.dailyRequestCount", { val: this.dailyRequestCount, ack: true });
+			}
+			await this.setStateAsync("info.dailyRequestCountReset", { val: new Date().toISOString(), ack: true });
+			this.resetDailyRequestCount(); // Reset again for the next day
+		}, msToMidnight);
+	}
+
+	async resolveSteamID(steamName) {
+		try {
+			const apiKey = this.config.apiKey;
+			const url = `http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${apiKey}&vanityurl=${steamName}`;
+
+			const response = await axios.get(url);
+
+			if (response.data.response.success === 1) {
+				return response.data.response.steamid;
+			} else {
+				this.log.warn(`Could not resolve Steam ID for ${steamName}.`);
+				return null;
+			}
+		} catch (error) {
+			this.log.error(`Error resolving Steam ID: ${error}`);
+			return null;
+		}
+	}
+
+	async getPlayerSummaries(apiKey, steamID) {
+		try {
+			const url = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${apiKey}&format=json&steamids=${steamID}`;
+			const response = await axios.get(url, { timeout: 20000 });
+
+			if (response.status === 200) {
+				const data = response.data.response.players[0];
+
+				if (data) {
+					await this.setPlayerState(data);
+				} else {
+					this.log.warn("No player data received from Steam API.");
+				}
+			} else {
+				this.log.error(`Unexpected response status: ${response.status}`);
+			}
+
+		} catch (error) {
+			this.log.error(`Error fetching player summaries: ${error}`);
+		}
+	}
+
+	async setPlayerState(data) {
+		try {
+			await this.createOrUpdateState("playerName", data.personaname, "string", "Player Name");
+			await this.createOrUpdateState("profileURL", data.profileurl, "string", "Profile URL");
+			await this.createOrUpdateState("avatar", data.avatarfull, "string", "Avatar URL");
+			await this.createOrUpdateState("playerState", data.personastate, "number", "Player State");
+			await this.createOrUpdateState("gameExtraInfo", data.gameextrainfo, "string", "Game Extra Info");
+		} catch (error) {
+			this.log.error(`Error setting player state: ${error}`);
+		}
+	}
+
+	async createOrUpdateState(stateName, value, type, name) {
+		await this.setObjectNotExistsAsync(stateName, {
 			type: "state",
 			common: {
-				name: "testVariable",
-				type: "boolean",
-				role: "indicator",
+				name: name,
+				type: type,
+				role: "state",
 				read: true,
-				write: true,
+				write: false,
+			},
+			native: {},
+		});
+		await this.setState(`${this.namespace}.${stateName}`, { val: value, ack: true });
+	}
+
+	async checkAndCreateStates() {
+		await this.setObjectNotExistsAsync("info.connection", {
+			type: "state",
+			common: {
+				name: "Device or Service connected",
+				type: "boolean",
+				role: "indicator.connected",
+				read: true,
+				write: false,
+				def: false
 			},
 			native: {},
 		});
 
-		// In order to get state updates, you need to subscribe to them. The following line adds a subscription for our variable we have created above.
-		this.subscribeStates("testVariable");
-		// You can also add a subscription for multiple states. The following line watches all states starting with "lights."
-		// this.subscribeStates("lights.*");
-		// Or, if you really must, you can also watch all states. Don't do this if you don't need to. Otherwise this will cause a lot of unnecessary load on the system:
-		// this.subscribeStates("*");
+		await this.setObjectNotExistsAsync("steamID64", {
+			type: "state",
+			common: {
+				name: "Steam ID64",
+				type: "string",
+				role: "state",
+				read: true,
+				write: false,
+			},
+			native: {},
+		});
 
-		/*
-			setState examples
-			you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)
-		*/
-		// the variable testVariable is set to true as command (ack=false)
-		await this.setStateAsync("testVariable", true);
+		await this.setObjectNotExistsAsync("info.dailyRequestCount", {
+			type: "state",
+			common: {
+				name: "Daily Request Count",
+				type: "number",
+				role: "value",
+				read: true,
+				write: false,
+				def: 0
+			},
+			native: {},
+		});
 
-		// same thing, but the value is flagged "ack"
-		// ack should be always set to true if the value is received from or acknowledged from the target system
-		await this.setStateAsync("testVariable", { val: true, ack: true });
-
-		// same thing, but the state is deleted after 30s (getState will return null afterwards)
-		await this.setStateAsync("testVariable", { val: true, ack: true, expire: 30 });
-
-		// examples for the checkPassword/checkGroup functions
-		let result = await this.checkPasswordAsync("admin", "iobroker");
-		this.log.info("check user admin pw iobroker: " + result);
-
-		result = await this.checkGroupAsync("admin", "admin");
-		this.log.info("check group user admin group admin: " + result);
+		await this.setObjectNotExistsAsync("info.dailyRequestCountReset", {
+			type: "state",
+			common: {
+				name: "Daily Request Count Reset",
+				type: "string",
+				role: "value.time",
+				read: true,
+				write: false,
+				def: ""
+			},
+			native: {},
+		});
 	}
 
-	/**
-	 * Is called when adapter shuts down - callback has to be called under any circumstances!
-	 * @param {() => void} callback
-	 */
 	onUnload(callback) {
 		try {
-			// Here you must clear all timeouts or intervals that may still be active
-			// clearTimeout(timeout1);
-			// clearTimeout(timeout2);
-			// ...
-			// clearInterval(interval1);
-
+			this.setConnected(false);
+			if (this.requestInterval) {
+				clearInterval(this.requestInterval);
+			}
 			callback();
 		} catch (e) {
 			callback();
 		}
 	}
 
-	// If you need to react to object changes, uncomment the following block and the corresponding line in the constructor.
-	// You also need to subscribe to the objects with `this.subscribeObjects`, similar to `this.subscribeStates`.
-	// /**
-	//  * Is called if a subscribed object changes
-	//  * @param {string} id
-	//  * @param {ioBroker.Object | null | undefined} obj
-	//  */
-	// onObjectChange(id, obj) {
-	// 	if (obj) {
-	// 		// The object was changed
-	// 		this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
-	// 	} else {
-	// 		// The object was deleted
-	// 		this.log.info(`object ${id} deleted`);
-	// 	}
-	// }
-
-	/**
-	 * Is called if a subscribed state changes
-	 * @param {string} id
-	 * @param {ioBroker.State | null | undefined} state
-	 */
 	onStateChange(id, state) {
 		if (state) {
-			// The state was changed
-			this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+			this.log.info(`State ${id} changed: ${state.val} (ack = ${state.ack})`);
 		} else {
-			// The state was deleted
-			this.log.info(`state ${id} deleted`);
+			this.log.info(`State ${id} deleted`);
 		}
 	}
 
-	// If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
-	// /**
-	//  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
-	//  * Using this method requires "common.messagebox" property to be set to true in io-package.json
-	//  * @param {ioBroker.Message} obj
-	//  */
-	// onMessage(obj) {
-	// 	if (typeof obj === "object" && obj.message) {
-	// 		if (obj.command === "send") {
-	// 			// e.g. send email or pushover or whatever
-	// 			this.log.info("send command");
+	onMessage(obj) {
+		const message = obj.message;
+		const command = obj.command;
+		const from = obj.from;
+		const callback = obj.callback;
 
-	// 			// Send response in callback if required
-	// 			if (obj.callback) this.sendTo(obj.from, obj.command, "Message received", obj.callback);
-	// 		}
-	// 	}
-	// }
+		if (command === "test") {
+			this.log.info("Test message: " + message);
 
+			if (callback) {
+				this.sendTo(from, callback, {
+					result: "Test message received",
+					error: null
+				});
+			}
+		}
+	}
+
+	setConnected(connected) {
+		this.setState("info.connection", connected, true);
+	}
 }
 
 if (require.main !== module) {
-	// Export the constructor in compact mode
-	/**
-	 * @param {Partial<utils.AdapterOptions>} [options={}]
-	 */
 	module.exports = (options) => new Steam(options);
 } else {
-	// otherwise start the instance directly
 	new Steam();
 }

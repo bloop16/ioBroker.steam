@@ -1,4 +1,6 @@
+.md -->
 ![Logo](admin/steam.png)
+
 # ioBroker.steam
 
 [![NPM version](https://img.shields.io/npm/v/iobroker.steam.svg)](https://www.npmjs.com/package/iobroker.steam)
@@ -8,97 +10,33 @@
 
 [![NPM](https://nodei.co/npm/iobroker.steam.png?downloads=true)](https://nodei.co/npm/iobroker.steam/)
 
-**Tests:** ![Test and Release](https://github.com/bloop16/ioBroker.steam/workflows/Test%20and%20Release/badge.svg)
+## ioBroker.steam
 
-## steam adapter for ioBroker
+This adapter allows you to integrate information from the Steam API into your ioBroker system. 
 
-Adapter to Support die Steam API
+## Features
 
-## Developer manual
-This section is intended for the developer. It can be deleted later.
+*   **Steam Profile Information:**
+    *   **Player Name:** Displays the current Steam name of the player.
+    *   **Profile URL:** Provides the URL to the Steam profile.
+    *   **Avatar URL:** Displays the URL to the player's avatar.
+    *   **Player State:** Displays the current state of the player (e.g., Online, Ingame, Away).
+    *   **Game Extra Info:** Displays information about the currently played game (if available).
+    *   **Steam ID64:** The unique 64-bit Steam ID of the user.
 
-### DISCLAIMER
+*   **API Request Management:**
+    *   **Daily Request Count:** Monitors the number of API requests to avoid exceeding the limit of 10,000 requests per day.
+    *   **Automatic Reset:** Automatically resets the daily request count at 0:00 (midnight).
+    *   **Buffer for Restarts:** Takes into account a buffer to ensure API requests during adapter restarts or connection interruptions.
 
-Please make sure that you consider copyrights and trademarks when you use names or logos of a company and add a disclaimer to your README.
-You can check other adapters for examples or ask in the developer community. Using a name or logo of a company without permission may cause legal problems for you.
+## Configuration
 
-### Getting started
+1.  **Steam Name:** Enter your Steam username.
+2.  **Steam API Key:** Enter your Steam API key. You can generate an API key [here](https://steamcommunity.com/dev/apikey).
 
-You are almost done, only a few steps left:
-1. Create a new repository on GitHub with the name `ioBroker.steam`
-1. Initialize the current folder as a new git repository:  
-	```bash
-	git init -b main
-	git add .
-	git commit -m "Initial commit"
-	```
-1. Link your local repository with the one on GitHub:  
-	```bash
-	git remote add origin https://github.com/bloop16/ioBroker.steam
-	```
+## Usage
 
-1. Push all files to the GitHub repo:  
-	```bash
-	git push origin main
-	```
-1. Add a new secret under https://github.com/bloop16/ioBroker.steam/settings/secrets. It must be named `AUTO_MERGE_TOKEN` and contain a personal access token with push access to the repository, e.g. yours. You can create a new token under https://github.com/settings/tokens.
-
-1. Head over to [main.js](main.js) and start programming!
-
-### Best Practices
-We've collected some [best practices](https://github.com/ioBroker/ioBroker.repositories#development-and-coding-best-practices) regarding ioBroker development and coding in general. If you're new to ioBroker or Node.js, you should
-check them out. If you're already experienced, you should also take a look at them - you might learn something new :)
-
-### Scripts in `package.json`
-Several npm scripts are predefined for your convenience. You can run them using `npm run <scriptname>`
-| Script name | Description |
-|-------------|-------------|
-| `test:js` | Executes the tests you defined in `*.test.js` files. |
-| `test:package` | Ensures your `package.json` and `io-package.json` are valid. |
-| `test:integration` | Tests the adapter startup with an actual instance of ioBroker. |
-| `test` | Performs a minimal test run on package files and your tests. |
-| `check` | Performs a type-check on your code (without compiling anything). |
-| `lint` | Runs `ESLint` to check your code for formatting errors and potential bugs. |
-| `translate` | Translates texts in your adapter to all required languages, see [`@iobroker/adapter-dev`](https://github.com/ioBroker/adapter-dev#manage-translations) for more details. |
-| `release` | Creates a new release, see [`@alcalzone/release-script`](https://github.com/AlCalzone/release-script#usage) for more details. |
-
-### Writing tests
-When done right, testing code is invaluable, because it gives you the 
-confidence to change your code while knowing exactly if and when 
-something breaks. A good read on the topic of test-driven development 
-is https://hackernoon.com/introduction-to-test-driven-development-tdd-61a13bc92d92. 
-Although writing tests before the code might seem strange at first, but it has very 
-clear upsides.
-
-The template provides you with basic tests for the adapter startup and package files.
-It is recommended that you add your own tests into the mix.
-
-### Publishing the adapter
-Using GitHub Actions, you can enable automatic releases on npm whenever you push a new git tag that matches the form 
-`v<major>.<minor>.<patch>`. We **strongly recommend** that you do. The necessary steps are described in `.github/workflows/test-and-release.yml`.
-
-Since you installed the release script, you can create a new
-release simply by calling:
-```bash
-npm run release
-```
-Additional command line options for the release script are explained in the
-[release-script documentation](https://github.com/AlCalzone/release-script#command-line).
-
-To get your adapter released in ioBroker, please refer to the documentation 
-of [ioBroker.repositories](https://github.com/ioBroker/ioBroker.repositories#requirements-for-adapter-to-get-added-to-the-latest-repository).
-
-### Test the adapter manually with dev-server
-Since you set up `dev-server`, you can use it to run, test and debug your adapter.
-
-You may start `dev-server` by calling from your dev directory:
-```bash
-dev-server watch
-```
-
-The ioBroker.admin interface will then be available at http://localhost:8081/
-
-Please refer to the [`dev-server` documentation](https://github.com/ioBroker/dev-server#command-line) for more details.
+After installing and configuring the adapter, the Steam profile information and API request statistics will be available as states in ioBroker. You can use these states in your ioBroker scripts and visualizations.
 
 ## Changelog
 <!--

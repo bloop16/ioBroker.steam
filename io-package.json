@@ -1,8 +1,8 @@
 {
-	"common": {
-		"name": "steam",
-		"version": "0.0.1",
-		"news": {
+    "common": {
+        "name": "steam",
+        "version": "0.0.1",
+        "news": {
 			"0.0.1": {
 				"en": "initial release",
 				"de": "Erstveröffentlichung",
@@ -15,77 +15,297 @@
 				"pl": "Pierwsze wydanie",
 				"uk": "Початкова версія",
 				"zh-cn": "首次出版"
-			}
-		},
-		"titleLang": {
-			"en": "Steam API",
-			"de": "Dampfapi",
-			"ru": "Steam API",
-			"pt": "API a vapor",
-			"nl": "Steam API",
-			"fr": "API à vapeur",
-			"it": "API a vapore",
-			"es": "API de vapor",
-			"pl": "API Steam",
-			"uk": "API Steam API",
-			"zh-cn": "蒸汽API"
-		},
-		"desc": {
-			"en": "Adapter to Support die Steam API",
-			"de": "Adapter zur Unterstützung der Dampf -API",
-			"ru": "Адаптер для поддержки Die Steam API",
-			"pt": "Adaptador para apoiar a API do Steam Die",
-			"nl": "Adapter ter ondersteuning van die Steam API",
-			"fr": "Adaptateur pour prendre en charge l'API Die Steam",
-			"it": "Adattatore per supportare API a vapore",
-			"es": "Adaptador para soportar la API de die Steam",
-			"pl": "Adapter wspierający API Die Steam",
-			"uk": "Адаптер для підтримки API Die Steam",
-			"zh-cn": "支持Die Steam API的适配器"
-		},
-		"authors": [
-			"bloop16 <bloop16@hotmail.com>"
-		],
-		"keywords": [
-			"ioBroker",
-			"template",
-			"Smart Home",
-			"home automation"
-		],
-		"licenseInformation": {
-			"type": "free",
-			"license": "MIT"
-		},
-		"platform": "Javascript/Node.js",
-		"icon": "steam.png",
-		"enabled": true,
-		"extIcon": "https://raw.githubusercontent.com/bloop16/ioBroker.steam/main/admin/steam.png",
-		"readme": "https://github.com/bloop16/ioBroker.steam/blob/main/README.md",
-		"loglevel": "info",
-		"tier": 3,
-		"mode": "daemon",
-		"type": "multimedia",
-		"compact": true,
-		"connectionType": "cloud",
-		"dataSource": "poll",
-		"adminUI": {
-			"config": "json"
-		},
-		"dependencies": [
-			{
-				"js-controller": ">=6.0.11"
-			}
-		],
-		"globalDependencies": [
-			{
-				"admin": "7.0.23"
-			}
-		]
-	},
-	"native": {
-		"option1": true,
-		"option2": "42"
-	},
-	"objects": [],
-	"instanceObjects": []
+            }
+        },
+        "titleLang": {
+            "en": "Steam API",
+            "de": "Steam API",
+            "ru": "Steam API",
+            "pt": "Steam API",
+            "nl": "Steam API",
+            "fr": "Steam API",
+            "it": "Steam API",
+            "es": "Steam API",
+            "pl": "Steam API",
+            "uk": "Steam API",
+            "zh-cn": "Steam API"
+        },
+        "desc": {
+            "en": "Adapter to Support die Steam API",
+            "de": "Adapter zur Unterstützung der Dampf -API",
+            "ru": "Адаптер для поддержки Steam API",
+            "pt": "Adaptador para apoiar a API do Steam Die",
+            "nl": "Adapter ter ondersteuning van die Steam API",
+            "fr": "Adaptateur pour prendre en charge l'API Die Steam",
+            "it": "Adattatore per supportare API a vapore",
+            "es": "Adaptador para soportar la API de die Steam",
+            "pl": "Adapter wspierający API Die Steam",
+            "uk": "Адаптер для підтримки API Die Steam",
+            "zh-cn": "支持Die Steam API的适配器"
+        },
+        "authors": [
+            "bloop16 <info@amring.xyz>"
+        ],
+        "keywords": [
+            "ioBroker",
+            "api",
+            "steam",
+            "gaming"
+        ],
+        "licenseInformation": {
+            "type": "free",
+            "license": "MIT"
+        },
+        "platform": "Javascript/Node.js",
+        "icon": "steam.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/bloop16/ioBroker.steam/main/admin/steam.png",
+        "readme": "https://github.com/bloop16/ioBroker.steam/blob/main/README.md",
+        "loglevel": "info",
+        "tier": 3,
+        "mode": "daemon",
+        "type": "multimedia",
+        "compact": true,
+        "connectionType": "cloud",
+        "dataSource": "poll",
+        "adminUI": {
+            "config": "json"
+        },
+        "dependencies": [
+            {
+                "js-controller": ">=6.0.11",
+                "axios": "^1.5.0"
+            }
+        ],
+        "globalDependencies": [
+            {
+                "admin": "7.0.23"
+            }
+        ]
+    },
+    "native": {
+        "steamName": "YOUR_STEAM_NAME",
+        "apiKey": "YOUR_API_KEY"
+    },
+    "objects": [
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Device or Service connected",
+                    "de": "Gerät oder Dienst verbunden",
+                    "ru": "Устройство или сервис подключен",
+                    "pt": "Dispositivo ou serviço conectado",
+                    "nl": "Apparaat of service verbonden",
+                    "fr": "Appareil ou service connecté",
+                    "it": "Dispositivo o servizio connesso",
+                    "es": "Dispositivo o servicio conectado",
+                    "pl": "Urządzenie lub usługa podłączona",
+                    "uk": "Пристрій сервіс підключено",
+                    "zh-cn": "设备或服务已连接"
+                },
+                "type": "boolean",
+                "role": "indicator.connected",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playerName",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Player Name",
+                    "de": "Spielername",
+                    "ru": "Имя игрока",
+                    "pt": "Nome do jogador",
+                    "nl": "Spelernaam",
+                    "fr": "Nom du joueur",
+                    "it": "Nome del giocatore",
+                    "es": "Nombre del jugador",
+                    "pl": "Nazwa gracza",
+                    "uk": "Ім'я гравця",
+                    "zh-cn": "玩家姓名"
+                },
+                "type": "string",
+                "role": "state",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "profileURL",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Profile URL",
+                    "de": "Profil-URL",
+                    "ru": "URL профиля",
+                    "pt": "URL do perfil",
+                    "nl": "Profiel URL",
+                    "fr": "URL du profil",
+                    "it": "URL del profilo",
+                    "es": "URL del perfil",
+                    "pl": "URL profilu",
+                    "uk": "URL профілю",
+                    "zh-cn": "个人资料网址"
+                },
+                "type": "string",
+                "role": "state",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "avatar",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Avatar URL",
+                    "de": "Avatar-URL",
+                    "ru": "URL аватара",
+                    "pt": "URL do avatar",
+                    "nl": "Avatar URL",
+                    "fr": "URL de l'avatar",
+                    "it": "URL dell'avatar",
+                    "es": "URL del avatar",
+                    "pl": "URL awatara",
+                    "uk": "URL аватара",
+                    "zh-cn": "头像网址"
+                },
+                "type": "string",
+                "role": "state",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playerState",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Player State",
+                    "de": "Spielerstatus",
+                    "ru": "Статус игрока",
+                    "pt": "Estado do jogador",
+                    "nl": "Spelerstatus",
+                    "fr": "État du joueur",
+                    "it": "Stato del giocatore",
+                    "es": "Estado del jugador",
+                    "pl": "Stan gracza",
+                    "uk": "Стан гравця",
+                    "zh-cn": "玩家状态"
+                },
+                "type": "number",
+                "role": "state",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "gameExtraInfo",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Game Extra Info",
+                    "de": "Zusätzliche Spielinformationen",
+                    "ru": "Дополнительная информация об игре",
+                    "pt": "Informações extras do jogo",
+                    "nl": "Extra informatie over het spel",
+                    "fr": "Informations supplémentaires sur le jeu",
+                    "it": "Informazioni extra sul gioco",
+                    "es": "Información adicional del juego",
+                    "pl": "Dodatkowe informacje o grze",
+                    "uk": "Додаткова інформація про гру",
+                    "zh-cn": "游戏额外信息"
+                },
+                "type": "string",
+                "role": "state",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.dailyRequestCount",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Daily Request Count",
+                    "de": "Tägliche Anzahl Anfragen",
+                    "ru": "Ежедневное количество запросов",
+                    "pt": "Contagem de solicitações diárias",
+                    "nl": "Aantal dagelijkse verzoeken",
+                    "fr": "Nombre de demandes quotidiennes",
+                    "it": "Conteggio richieste giornaliere",
+                    "es": "Recuento de solicitudes diarias",
+                    "pl": "Liczba dziennych żądań",
+                    "uk": "Щоденна кількість запитів",
+                    "zh-cn": "每日请求计数"
+                },
+                "type": "number",
+                "role": "value",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "steamID64",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Steam ID64",
+                    "de": "Steam ID64",
+                    "ru": "Steam ID64",
+                    "pt": "Steam ID64",
+                    "nl": "Steam ID64",
+                    "fr": "Steam ID64",
+                    "it": "Steam ID64",
+                    "es": "Steam ID64",
+                    "pl": "Steam ID64",
+                    "uk": "Steam ID64",
+                    "zh-cn": "Steam ID64"
+                },
+                "type": "string",
+                "role": "state",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.dailyRequestCountReset",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Daily Request Count Reset",
+                    "de": "Tägliche Anzahl Anfragen Rücksetzung",
+                    "ru": "Сброс ежедневного количества запросов",
+                    "pt": "Redefinição da contagem diária de solicitações",
+                    "nl": "Reset van het aantal dagelijkse verzoeken",
+                    "fr": "Réinitialisation du nombre de demandes quotidiennes",
+                    "it": "Ripristino del conteggio giornaliero delle richieste",
+                    "es": "Restablecimiento del recuento diario de solicitudes",
+                    "pl": "Resetowanie dziennej liczby żądań",
+                    "uk": "Скидання щоденної кількості запитів",
+                    "zh-cn": "每日请求计数重置"
+                },
+                "type": "string",
+                "role": "value.time",
+                "read": true,
+                "write": false,
+                "def": ""
+            },
+            "native": {}
+        }
+    ],
+    "instanceObjects": []
 }

@@ -1,5 +1,14 @@
 {
-	"steam adapter settings": "Impostazioni dell'adattatore per steam",
-	"option1": "opzione1",
-	"option2": "opzione2"
+    "Options": "Opzioni",
+    "Steam ID": "ID a Steam",
+    "Steam API Key": "Chiave API a vapore",
+    "Steam Name": "Nome a vapore",
+    "infoConnectionName": "Dispositivo o servizio connesso",
+    "playerNameName": "Nome giocatore",
+    "profileURLName": "URL del profilo",
+    "avatarName": "URL AVATAR",
+    "playerStateName": "Stato del giocatore",
+    "gameExtraInfoName": "Gioco extra di gioco",
+    "dailyRequestCountName": "Conteggio delle richieste giornaliere",
+    "steamID64Name": "Steam ID64"
 }

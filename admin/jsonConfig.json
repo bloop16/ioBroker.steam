@@ -2,15 +2,16 @@
 	"i18n": true,
 	"type": "panel",
 	"items": {
-		"option1": {
-			"type": "checkbox",
-			"label": "option1",
-			"newLine": true
-		},
-		"option2": {
-			"type": "text",
-			"label": "option2",
-			"newLine": true
+		"steamName": {
+            "type": "text",
+            "label": "Steam Name",
+            "newLine": true
+        },
+		"apiKey": {
+            "type": "text",
+            "label": "Steam API Key",
+            "newLine": true,
+            "help": "Generate API Key <a href=\"https://steamcommunity.com/dev/apikey\" target=\"_blank\">here</a>"
 		}
 	}
 }

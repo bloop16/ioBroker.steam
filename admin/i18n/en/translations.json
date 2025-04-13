@@ -1,5 +1,13 @@
 {
-	"steam adapter settings": "Adapter settings for steam",
-	"option1": "option1",
-	"option2": "option2"
+    "Options": "Options",
+    "Steam Name": "Steam Name",
+    "Steam API Key": "Steam API Key",
+    "infoConnectionName": "Device or Service connected",
+    "playerNameName": "Player Name",
+    "profileURLName": "Profile URL",
+    "avatarName": "Avatar URL",
+    "playerStateName": "Player State",
+    "gameExtraInfoName": "Game Extra Info",
+    "dailyRequestCountName": "Daily Request Count",
+    "steamID64Name": "Steam ID64"
 }

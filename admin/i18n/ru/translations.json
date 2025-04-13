@@ -1,5 +1,14 @@
 {
-	"steam adapter settings": "Настройки адаптера для steam",
-	"option1": "вариант1",
-	"option2": "вариант2"
+    "Options": "Параметры",
+    "Steam ID": "Паровой идентификатор",
+    "Steam API Key": "Steam API -ключ",
+    "Steam Name": "Steam название",
+    "infoConnectionName": "Устройство или служба подключено",
+    "playerNameName": "Имя игрока",
+    "profileURLName": "Профиль URL",
+    "avatarName": "Аватар URL",
+    "playerStateName": "Государство игрока",
+    "gameExtraInfoName": "Игра дополнительная информация",
+    "dailyRequestCountName": "Ежедневное количество запросов",
+    "steamID64Name": "Steam ID64"
 }

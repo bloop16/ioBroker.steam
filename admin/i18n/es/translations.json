@@ -1,5 +1,14 @@
 {
-	"steam adapter settings": "Ajustes del adaptador para steam",
-	"option1": "Opción1",
-	"option2": "opción 2"
+    "Options": "Opción",
+    "Steam ID": "ID de Steam",
+    "Steam API Key": "Llave de API de Steam",
+    "Steam Name": "Nombre de vapor",
+    "infoConnectionName": "Dispositivo o servicio conectado",
+    "playerNameName": "Nombre del jugador",
+    "profileURLName": "URL de perfil",
+    "avatarName": "URL de avatar",
+    "playerStateName": "Estado del jugador",
+    "gameExtraInfoName": "Información adicional del juego",
+    "dailyRequestCountName": "Recuento de solicitudes diarias",
+    "steamID64Name": "Vapor ID64"
 }

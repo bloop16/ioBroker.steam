@@ -1,5 +1,14 @@
 {
-	"steam adapter settings": "steam的适配器设置",
-	"option1": "选项1",
-	"option2": "选项2"
+    "Options": "选项",
+    "Steam ID": "Steam ID",
+    "Steam API Key": "Steam API键",
+    "Steam Name": "蒸汽名称",
+    "infoConnectionName": "连接的设备或服务",
+    "playerNameName": "玩家名称",
+    "profileURLName": "配置文件URL",
+    "avatarName": "头像URL",
+    "playerStateName": "玩家状态",
+    "gameExtraInfoName": "游戏额外信息",
+    "dailyRequestCountName": "每日请求计数",
+    "steamID64Name": "Steam ID64"
 }

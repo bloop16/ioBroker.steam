@@ -1,5 +1,14 @@
 {
-	"steam adapter settings": "Налаштування адаптера для steam",
-	"option1": "Варіант1",
-	"option2": "Варіант2"
+    "Options": "Варіанти",
+    "Steam ID": "Ідентифікатор пари",
+    "Steam API Key": "Ключ Steam API",
+    "Steam Name": "Назва пари",
+    "infoConnectionName": "Пристрій або послуга підключено",
+    "playerNameName": "Ім'я гравця",
+    "profileURLName": "URL -адреса профілю",
+    "avatarName": "URL -адреса аватара",
+    "playerStateName": "Гравець",
+    "gameExtraInfoName": "Гра додаткова інформація",
+    "dailyRequestCountName": "Щоденний кількість запитів",
+    "steamID64Name": "Steam id64"
 }
