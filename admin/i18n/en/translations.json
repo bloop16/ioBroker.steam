@@ -1,7 +1,7 @@
 {
-    "Options": "Options",
     "Steam Name": "Steam Name",
     "Steam API Key": "Steam API Key",
+    "Options": "Options",
     "infoConnectionName": "Device or Service connected",
     "playerNameName": "Player Name",
     "profileURLName": "Profile URL",
@@ -9,5 +9,23 @@
     "playerStateName": "Player State",
     "gameExtraInfoName": "Game Extra Info",
     "dailyRequestCountName": "Daily Request Count",
-    "steamID64Name": "Steam ID64"
+    "steamID64Name": "Steam ID64",
+    "Steam Name Help": "Name of the Steam user",
+    "Steam API Key Help": "Generate API Key <a href=\"https://steamcommunity.com/dev/apikey\" target=\"_blank\">here</a>",
+    "General": "General",
+    "Games": "Games",
+    "Games to Monitor": "Games to Monitor",
+    "Game Name": "Game Name",
+    "Enabled": "Enabled",
+    "Current Game": "Current Game",
+    "Game App ID": "Game App ID",
+    "Recently Played Games": "Recently Played Games",
+    "Total Recently Played Games": "Total Recently Played Games",
+    "Game News": "Game News",
+    "Latest News Title": "Latest News Title",
+    "Latest News URL": "Latest News URL",
+    "Latest News Content": "Latest News Content",
+    "Latest News Date": "Latest News Date",
+    "Player summary interval (sec)": "Player summary interval (sec)",
+    "Player summary interval (sec) help": "(minimum 15 seconds)"
 }

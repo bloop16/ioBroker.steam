@@ -23,8 +23,19 @@ This adapter allows you to integrate information from the Steam API into your io
     *   **Game Extra Info:** Displays information about the currently played game (if available).
     *   **Steam ID64:** The unique 64-bit Steam ID of the user.
 
+*   **Game Monitoring:**
+    *   **Games to Monitor:** Configure a list of games to monitor.
+    *   **Game App ID:** Stores the Steam App ID for each monitored game.
+    *   **Game News:** Fetches and updates the latest news for each monitored game every 6 hours (4 times a day).
+
+
+*   **Recently Played Games:**
+    *   **Fetches recently played games** every 15 minutes (configurable in the code).
+    *   **recentlyPlayed** is also updated immediately whenever the `currentGame` changes.
+
 *   **API Request Management:**
-    *   **Daily Request Count:** Monitors the number of API requests to avoid exceeding the limit of 10,000 requests per day.
+    *   **GetPlayerSummaries:** Requests player summaries at a configurable interval (minimum 15 seconds, default 60 seconds).
+    *   **Daily Request Count:** Monitors the number of GetPlayerSummaries API requests to avoid exceeding the limit of 10,000 requests per day.
     *   **Automatic Reset:** Automatically resets the daily request count at 0:00 (midnight).
     *   **Buffer for Restarts:** Takes into account a buffer to ensure API requests during adapter restarts or connection interruptions.
 
@@ -32,22 +43,32 @@ This adapter allows you to integrate information from the Steam API into your io
 
 1.  **Steam Name:** Enter your Steam username.
 2.  **Steam API Key:** Enter your Steam API key. You can generate an API key [here](https://steamcommunity.com/dev/apikey).
+3.  **Player summary interval:** Set how often to request player summaries (minimum 15 seconds).
+4.  **Games to Monitor:** Add games to monitor.
 
 ## Usage
 
-After installing and configuring the adapter, the Steam profile information and API request statistics will be available as states in ioBroker.
+After installing and configuring the adapter, the Steam profile information, game news, recently played games, and API request statistics will be available as states in ioBroker.
 
 ## Changelog
-### 0.0.3 (2025-04-13)
 
+### 0.1.0 (2025-04-15)
 * (bloop16)
+    * Added configurable interval for GetPlayerSummaries (min 15s, default 60s)
+    * Added fetching and updating of game news every 6 hours (4x per day)
+    * Added fetching of recently played games every 15 minutes
+    * Improved API request management and daily request counter reset
+    * Cleaned up code and improved error handling
+
+### 0.0.3 (2025-04-13)
+* (bloop16)  
     * fixed state directory
 
 ### 0.0.2 (2025-04-13)
-* (bloop16) First working Version
-    * Steam profile information integration
-    * API request management with daily limits
-    * Automatic reset of request counter
+* (bloop16) First working Version  
+    * Steam profile information integration  
+    * API request management with daily limits  
+    * Automatic reset of request counter  
     * Secure API key storage
 
 ## License

@@ -25,10 +25,16 @@
 		// "noUnusedParameters": true,
 		"useUnknownInCatchVariables": false,
 
+		"target": "ES2019",
+		"module": "commonjs",
+		"outDir": "build",
+		"rootDir": "src",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true
 	},
 	"include": [
-		"**/*.js",
-		"**/*.d.ts"
+		"src/**/*"
 	],
 	"exclude": [
 		"node_modules/**",

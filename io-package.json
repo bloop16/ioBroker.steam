@@ -2,6 +2,7 @@
   "common": {
     "name": "steam",
     "version": "0.0.3",
+    "main": "main.js",
     "news": {
       "0.0.3": {
         "en": "\nfixed state directory",
@@ -83,15 +84,11 @@
       }
     ]
   },
-  "protectedNative": [
-    "apiKey"
-  ],
-  "encryptedNative": [
-    "apiKey"
-  ],
   "native": {
     "steamName": "YOUR_STEAM_NAME",
-    "apiKey": "YOUR_API_KEY"
+    "apiKey": "YOUR_API_KEY",
+    "gameList": [],
+    "playerSummaryIntervalSec": 60
   },
   "objects": [],
   "instanceObjects": [
@@ -368,6 +365,26 @@
         "read": true,
         "write": false,
         "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "games",
+      "type": "folder",
+      "common": {
+        "name": {
+          "en": "Steam Games",
+          "de": "Steam-Spiele",
+          "ru": "Steam игры",
+          "pt": "Jogos Steam",
+          "nl": "Steam-spellen",
+          "fr": "Jeux Steam",
+          "it": "Giochi Steam",
+          "es": "Juegos de Steam",
+          "pl": "Gry Steam",
+          "uk": "Ігри Steam",
+          "zh-cn": "Steam 游戏"
+        }
       },
       "native": {}
     }
