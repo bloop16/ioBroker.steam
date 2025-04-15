@@ -2,7 +2,6 @@
   "common": {
     "name": "steam",
     "version": "0.0.3",
-    "main": "main.js",
     "news": {
       "0.0.3": {
         "en": "\nfixed state directory",
@@ -85,8 +84,8 @@
     ]
   },
   "native": {
-    "steamName": "YOUR_STEAM_NAME",
-    "apiKey": "YOUR_API_KEY",
+    "steamName": "",
+    "apiKey": "",
     "gameList": [],
     "playerSummaryIntervalSec": 60
   },
