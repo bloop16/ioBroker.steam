@@ -52,7 +52,7 @@ After installing and configuring the adapter, the Steam profile information, gam
 
 ## Changelog
 
-### 0.1.0 (2025-04-15)
+### 0.1.2 (2025-04-15)
 * (bloop16)
     * Added configurable interval for GetPlayerSummaries (min 15s, default 60s)
     * Added fetching and updating of game news every 6 hours (4x per day)
