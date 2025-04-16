@@ -54,6 +54,10 @@ After installing and configuring the adapter, the Steam profile information, gam
 
 ### 0.2.0 (2025-04-16)
 * (bloop16)
+    * Fix APIRequest
+
+### 0.2.0 (2025-04-16)
+* (bloop16)
     * Added function to suggest up to 5 similar game names if a game cannot be found (typo-tolerant search and warning in log).
 
 ### 0.1.2 (2025-04-15)

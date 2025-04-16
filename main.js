@@ -33,6 +33,8 @@ class Steam extends utils.Adapter {
         this.recentlyPlayedInterval = null;
         this.playerSummaryInterval = null;
         this.isFetchingPlayerSummary = false;
+        this.isShuttingDown = false;
+        this._apiTimeouts = []; // Track all API timeouts for cleanup
 
         this.on('ready', this.onReady.bind(this));
         this.on('stateChange', this.onStateChange.bind(this));
@@ -180,6 +182,12 @@ class Steam extends utils.Adapter {
     }
 
     async apiRequest(endpoint, params = {}, retryCount = 0) {
+        // First check if shutting down
+        if (this.isShuttingDown) {
+            this.logApiDebug('apiRequest', 'Request skipped because adapter is shutting down');
+            throw new Error('Adapter is shutting down');
+        }
+
         try {
             this.logApiDebug('apiRequest', 'API request to %s with params: %s', endpoint, JSON.stringify(params));
             const response = await axios.get(endpoint, {
@@ -188,16 +196,40 @@ class Steam extends utils.Adapter {
             });
             return response;
         } catch (error) {
+            // Check again if shutting down before retrying
+            if (this.isShuttingDown) {
+                throw new Error('Adapter is shutting down');
+            }
+
             // Handle Rate-Limit (429)
             if (error.response && error.response.status === 429 && retryCount < RATE_LIMIT_CONFIG.MAX_RETRIES) {
                 const waitTime = Math.pow(2, retryCount) * RATE_LIMIT_CONFIG.RETRY_BASE_TIME;
                 this.logApiWarning('apiRequest', 'Rate limit exceeded. Retrying in %s minutes.', waitTime / 60000);
 
-                return new Promise(resolve => {
-                    setTimeout(async () => {
-                        const result = await this.apiRequest(endpoint, params, retryCount + 1);
-                        resolve(result);
+                return new Promise((resolve, reject) => {
+                    const timeoutId = setTimeout(async () => {
+                        // Remove the timeout from tracking array when it completes
+                        const index = this._apiTimeouts.indexOf(timeoutId);
+                        if (index !== -1) {
+                            this._apiTimeouts.splice(index, 1);
+                        }
+
+                        // Check if adapter is shutting down before executing retry
+                        if (this.isShuttingDown) {
+                            reject(new Error('Adapter is shutting down'));
+                            return;
+                        }
+
+                        try {
+                            const result = await this.apiRequest(endpoint, params, retryCount + 1);
+                            resolve(result);
+                        } catch (e) {
+                            reject(e);
+                        }
                     }, waitTime);
+
+                    // Add timeout to tracking array for cleanup
+                    this._apiTimeouts.push(timeoutId);
                 });
             }
 
@@ -402,26 +434,89 @@ class Steam extends utils.Adapter {
 
     async setupGames() {
         if (!this.config.gameList || !Array.isArray(this.config.gameList)) {
-            this.log.info(this._('No games configured to monitor'));
+            this.log.info(this._('No games configured to monitor or invalid game list format.'));
             return;
         }
-        await this.setObjectNotExistsAsync('games', {
-            type: 'folder',
-            common: { name: this._('Steam Games') },
-            native: {},
-        });
 
-        for (const game of this.config.gameList) {
-            if (game && game.gameName && game.enabled) {
-                const gameData = await this.searchGameAppId(game.gameName);
-                if (gameData) {
-                    const gameId = gameData.name.replace(/[^a-zA-Z0-9]/g, '_');
-                    await this.createGameStates(gameId, gameData.name);
-                    await this.setState(`games.${gameId}.name`, gameData.name, true);
-                    await this.setState(`games.${gameId}.isPlaying`, false, true);
-                    await this.setState(`games.${gameId}.gameAppId`, gameData.appId, true);
+        try {
+            await this.setObjectNotExistsAsync('games', {
+                type: 'folder',
+                common: { name: this._('Steam Games') },
+                native: {},
+            });
+
+            let configUpdated = false;
+            const updatedGameList = [];
+
+            for (const game of this.config.gameList) {
+                if (!game || typeof game !== 'object') {
+                    this.log.warn(this._('Invalid game entry in configuration: %s', JSON.stringify(game)));
+                    continue;
+                }
+
+                const updatedGame = { ...game };
+
+                if (game.enabled) {
+                    let gameData = null;
+
+                    if (game.appId && !isNaN(parseInt(game.appId)) && parseInt(game.appId) > 0) {
+                        gameData = await this.getGameByAppId(parseInt(game.appId));
+                        if (gameData && (!game.gameName || game.gameName !== gameData.name)) {
+                            updatedGame.gameName = gameData.name;
+                            configUpdated = true;
+                            this.log.info(this._('Updated game name to %s for AppID %s', gameData.name, game.appId));
+                        }
+                    } else if (game.gameName) {
+                        gameData = await this.searchGameAppId(game.gameName);
+                        if (gameData && gameData.appId) {
+                            updatedGame.appId = gameData.appId;
+                            configUpdated = true;
+                            this.log.info(
+                                this._('Updated game %s with AppID %s in configuration', game.gameName, gameData.appId),
+                            );
+                        }
+                    }
+
+                    if (gameData) {
+                        const gameId = gameData.name.replace(/[^a-zA-Z0-9]/g, '_');
+                        await this.createGameStates(gameId, gameData.name);
+                        await this.setState(`games.${gameId}.name`, gameData.name, true);
+                        await this.setState(`games.${gameId}.isPlaying`, false, true);
+                        await this.setState(`games.${gameId}.gameAppId`, gameData.appId, true);
+
+                        if (gameData.appId) {
+                            try {
+                                const newsItems = await this.getNewsForGame(gameData.appId);
+                                if (newsItems && newsItems.length > 0) {
+                                    await this.updateGameNews(gameId, newsItems[0]);
+                                    this.log.debug(this._('Loaded initial news for %s', gameData.name));
+                                }
+                            } catch (error) {
+                                this.log.warn(this._('Could not load news for %s: %s', gameData.name, error));
+                            }
+                        }
+                    }
+                }
+
+                updatedGameList.push(updatedGame);
+            }
+
+            if (configUpdated) {
+                try {
+                    await this.extendForeignObjectAsync(`system.adapter.${this.namespace}`, {
+                        native: {
+                            gameList: updatedGameList,
+                        },
+                    });
+
+                    this.config.gameList = updatedGameList;
+                    this.log.info(this._('Saved updated game configuration.'));
+                } catch (error) {
+                    this.log.error(this._('Error saving updated game configuration: %s', error));
                 }
             }
+        } catch (error) {
+            this.log.error(this._('Error during setupGames: %s', error));
         }
     }
 
@@ -550,6 +645,31 @@ class Steam extends utils.Adapter {
             false,
             'Error fetching Steam app list: %s',
         );
+    }
+
+    async getGameByAppId(appId) {
+        try {
+            if (!this.steamAppList || Date.now() - this.lastAppListFetch > 86400000) {
+                await this.fetchSteamAppList();
+            }
+
+            if (!this.steamAppList) {
+                this.log.error(this._('Steam app list not available'));
+                return null;
+            }
+
+            const game = this.steamAppList.find(app => app.appid === appId);
+            if (game && game.name) {
+                this.log.debug(this._('Found game by AppID %s: %s', appId, game.name));
+                return { appId: game.appid, name: game.name };
+            }
+
+            this.log.warn(this._('No game found with AppID: %s', appId));
+            return null;
+        } catch (error) {
+            this.log.error(this._('Error searching for game by AppID: %s', error));
+            return null;
+        }
     }
 
     async getNewsForGame(appId, count, maxLength) {
@@ -734,21 +854,38 @@ class Steam extends utils.Adapter {
 
     async onUnload(callback) {
         try {
+            this.isShuttingDown = true;
             this.setConnected(false);
+
+            // Clear the reset timeout
             if (this.resetTimeout) {
                 clearTimeout(this.resetTimeout);
+                this.resetTimeout = null;
             }
+
+            // Clear intervals
             if (this.newsInterval) {
                 clearInterval(this.newsInterval);
+                this.newsInterval = null;
             }
             if (this.recentlyPlayedInterval) {
                 clearInterval(this.recentlyPlayedInterval);
+                this.recentlyPlayedInterval = null;
             }
             if (this.playerSummaryInterval) {
                 clearInterval(this.playerSummaryInterval);
+                this.playerSummaryInterval = null;
             }
+
+            // Clear all API timeouts
+            for (const timeoutId of this._apiTimeouts) {
+                clearTimeout(timeoutId);
+            }
+            this._apiTimeouts = [];
+
             callback();
-        } catch {
+        } catch (e) {
+            this.log.error(`Error during unload: ${e}`);
             callback();
         }
     }
