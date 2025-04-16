@@ -27,5 +27,7 @@
     "Latest News Content": "Latest News Content",
     "Latest News Date": "Latest News Date",
     "Player summary interval (sec)": "Player summary interval (sec)",
-    "Player summary interval (sec) help": "(minimum 15 seconds)"
+    "Player summary interval (sec) help": "(minimum 15 seconds)",
+    "Enable game suggestions": "Enable game name suggestions",
+    "Enable game suggestions help": "When enabled, suggests similar game names if a game cannot be found"
 }

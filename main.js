@@ -3,6 +3,21 @@
 const utils = require('@iobroker/adapter-core');
 const axios = require('axios');
 
+const API_BASE_URL = 'https://api.steampowered.com';
+const API_ENDPOINTS = {
+    RESOLVE_VANITY_URL: `${API_BASE_URL}/ISteamUser/ResolveVanityURL/v0001/`,
+    GET_PLAYER_SUMMARIES: `${API_BASE_URL}/ISteamUser/GetPlayerSummaries/v2/`,
+    GET_APP_LIST: `${API_BASE_URL}/ISteamApps/GetAppList/v0002/`,
+    GET_NEWS_FOR_APP: `${API_BASE_URL}/ISteamNews/GetNewsForApp/v0002/`,
+    GET_RECENTLY_PLAYED: `${API_BASE_URL}/IPlayerService/GetRecentlyPlayedGames/v1/`,
+};
+
+const RATE_LIMIT_CONFIG = {
+    RETRY_BASE_TIME: 60000, // 1 Minute als Basis-Wartezeit
+    MAX_RETRIES: 5, // Maximale Anzahl von Wiederholungsversuchen
+    REQUEST_TIMEOUT: 20000, // 20s Timeout für alle API-Anfragen
+};
+
 class Steam extends utils.Adapter {
     constructor(options) {
         super({
@@ -120,7 +135,7 @@ class Steam extends utils.Adapter {
 
     async fetchAndSetData(apiKey, steamID64, retryCount = 0) {
         if (this.isFetchingPlayerSummary) {
-            this.log.debug('fetchAndSetData: Request skipped because another is running.');
+            this.logApiDebug('fetchAndSetData', 'Request skipped because another is running');
             return;
         }
         this.isFetchingPlayerSummary = true;
@@ -128,15 +143,15 @@ class Steam extends utils.Adapter {
             if (this.dailyRequestCount < 8000) {
                 await this.getPlayerSummaries(apiKey, steamID64);
                 this.dailyRequestCount++;
-                await this.setStateAsync('info.dailyRequestCount', { val: this.dailyRequestCount, ack: true });
+                await this.setState('info.dailyRequestCount', this.dailyRequestCount, true);
             } else {
-                this.log.warn(this._('Daily API request limit reached.'));
+                this.logApiWarning('fetchAndSetData', 'Daily API request limit reached');
             }
         } catch (error) {
-            this.log.error(this._('Error fetching data: %s', error));
+            this.logApiError('fetchAndSetData', error, 'Error fetching data');
             if (error.response && error.response.status === 429) {
-                const waitTime = Math.pow(2, retryCount || 0) * 60000;
-                this.log.warn(this._('Rate limit exceeded. Retrying in %s minutes.', waitTime / 60000));
+                const waitTime = Math.pow(2, retryCount || 0) * RATE_LIMIT_CONFIG.RETRY_BASE_TIME;
+                this.logApiWarning('fetchAndSetData', 'Rate limit exceeded. Retrying in %s minutes.', waitTime / 60000);
                 setTimeout(() => {
                     this.fetchAndSetData(apiKey, steamID64, (retryCount || 0) + 1);
                 }, waitTime);
@@ -158,42 +173,88 @@ class Steam extends utils.Adapter {
         this.resetTimeout = setTimeout(async () => {
             this.dailyRequestCount = 0;
             this.log.info(this._('Daily request count reset.'));
-            await this.setStateAsync('info.dailyRequestCount', { val: this.dailyRequestCount, ack: true });
-            await this.setStateAsync('info.dailyRequestCountReset', { val: new Date().toISOString(), ack: true });
+            await this.setState('info.dailyRequestCount', this.dailyRequestCount, true);
+            await this.setState('info.dailyRequestCountReset', new Date().toISOString(), true);
             this.resetDailyRequestCount();
         }, msToMidnight);
     }
 
-    async resolveSteamID(steamName) {
+    async apiRequest(endpoint, params = {}, retryCount = 0) {
         try {
-            const apiKey = this.config.apiKey;
-            const url = `http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${apiKey}&vanityurl=${steamName}`;
-            const response = await axios.get(url);
-
-            if (response.data.response.success === 1) {
-                return response.data.response.steamid;
-            }
-            this.log.warn(this._('Could not resolve Steam ID for %s.', steamName));
-            return null;
+            this.logApiDebug('apiRequest', 'API request to %s with params: %s', endpoint, JSON.stringify(params));
+            const response = await axios.get(endpoint, {
+                params,
+                timeout: RATE_LIMIT_CONFIG.REQUEST_TIMEOUT,
+            });
+            return response;
         } catch (error) {
-            this.log.error(this._('Error resolving Steam ID: %s', error));
-            return null;
+            // Handle Rate-Limit (429)
+            if (error.response && error.response.status === 429 && retryCount < RATE_LIMIT_CONFIG.MAX_RETRIES) {
+                const waitTime = Math.pow(2, retryCount) * RATE_LIMIT_CONFIG.RETRY_BASE_TIME;
+                this.logApiWarning('apiRequest', 'Rate limit exceeded. Retrying in %s minutes.', waitTime / 60000);
+
+                return new Promise(resolve => {
+                    setTimeout(async () => {
+                        const result = await this.apiRequest(endpoint, params, retryCount + 1);
+                        resolve(result);
+                    }, waitTime);
+                });
+            }
+
+            this.logApiError('apiRequest', error);
+            throw error; // Re-throw for caller to handle
         }
     }
 
-    async getPlayerSummaries(apiKey, steamID) {
+    async safeApiCall(apiFunction, errorReturnValue, errorMessage) {
         try {
-            const url = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${apiKey}&format=json&steamids=${steamID}`;
-            const response = await axios.get(url, { timeout: 20000 });
-
-            if (response.status === 200 && response.data.response.players[0]) {
-                await this.setPlayerState(response.data.response.players[0]);
-            } else {
-                this.log.warn(this._('No player data received from Steam API.'));
-            }
+            return await apiFunction();
         } catch (error) {
-            this.log.error(this._('Error fetching player data: %s', error));
+            this.log.error(this._(errorMessage, error));
+            return errorReturnValue;
         }
+    }
+
+    async resolveSteamID(steamName) {
+        return this.safeApiCall(
+            async () => {
+                const apiKey = this.config.apiKey;
+                const response = await this.apiRequest(API_ENDPOINTS.RESOLVE_VANITY_URL, {
+                    key: apiKey,
+                    vanityurl: steamName,
+                });
+
+                if (response.data && response.data.response && response.data.response.success === 1) {
+                    this.logApiInfo('resolveSteamID', 'Successfully resolved Steam ID for %s', steamName);
+                    return response.data.response.steamid;
+                }
+                this.logApiWarning('resolveSteamID', 'Could not resolve Steam ID for %s', steamName);
+                return null;
+            },
+            null,
+            'Error resolving Steam ID: %s',
+        );
+    }
+
+    async getPlayerSummaries(apiKey, steamID) {
+        return this.safeApiCall(
+            async () => {
+                const response = await this.apiRequest(API_ENDPOINTS.GET_PLAYER_SUMMARIES, {
+                    key: apiKey,
+                    format: 'json',
+                    steamids: steamID,
+                });
+
+                if (response.status === 200 && response.data.response.players[0]) {
+                    await this.setPlayerState(response.data.response.players[0]);
+                    return true;
+                }
+                this.logApiWarning('getPlayerSummaries', 'No player data received from Steam API');
+                return false;
+            },
+            false,
+            'Error fetching player data: %s',
+        );
     }
 
     async setPlayerState(data) {
@@ -383,7 +444,7 @@ class Steam extends utils.Adapter {
             },
             native: {},
         });
-        await this.setState(`${this.namespace}.${stateName}`, { val: value, ack: true });
+        await this.setState(stateName, value, true);
     }
 
     async checkAndCreateStates() {
@@ -456,7 +517,7 @@ class Steam extends utils.Adapter {
                 this.log.debug(this._('Found partial match: %s', containsMatch.name));
                 return { appId: containsMatch.appid, name: containsMatch.name };
             }
-            this.log.warn(this._('No games found matching: %s', gameName));
+            this.warnSimilarGames(gameName);
             return null;
         } catch (error) {
             this.log.error(this._('Error searching for game: %s', error));
@@ -465,50 +526,58 @@ class Steam extends utils.Adapter {
     }
 
     async fetchSteamAppList() {
-        try {
-            this.log.info(this._('Fetching Steam app list...'));
-            const url = 'http://api.steampowered.com/ISteamApps/GetAppList/v0002/';
-            const response = await axios.get(url, { timeout: 30000 });
-            if (
-                response.status === 200 &&
-                response.data &&
-                response.data.applist &&
-                Array.isArray(response.data.applist.apps)
-            ) {
-                this.steamAppList = response.data.applist.apps
-                    .filter(app => app.name && app.name.trim() !== '')
-                    .sort((a, b) => a.name.localeCompare(b.name));
-                this.lastAppListFetch = Date.now();
-                this.log.info(this._('Steam app list fetched with %s games', this.steamAppList.length));
-                return true;
-            }
-            this.log.error(this._('Invalid response from Steam app list API'));
-            return false;
-        } catch (error) {
-            this.log.error(this._('Error fetching Steam app list: %s', error));
-            return false;
-        }
+        return this.safeApiCall(
+            async () => {
+                this.log.info(this._('Fetching Steam app list...'));
+                const response = await this.apiRequest(API_ENDPOINTS.GET_APP_LIST);
+
+                if (
+                    response.status === 200 &&
+                    response.data &&
+                    response.data.applist &&
+                    Array.isArray(response.data.applist.apps)
+                ) {
+                    this.steamAppList = response.data.applist.apps
+                        .filter(app => app.name && app.name.trim() !== '')
+                        .sort((a, b) => a.name.localeCompare(b.name));
+                    this.lastAppListFetch = Date.now();
+                    this.log.info(this._('Steam app list fetched with %s games', this.steamAppList.length));
+                    return true;
+                }
+                this.log.error(this._('Invalid response from Steam app list API'));
+                return false;
+            },
+            false,
+            'Error fetching Steam app list: %s',
+        );
     }
 
     async getNewsForGame(appId, count, maxLength) {
-        try {
-            const url = `http://api.steampowered.com/ISteamNews/GetNewsForApp/v0002/?appid=${appId}&count=${count || 3}&maxlength=${maxLength || 300}&format=json`;
-            const response = await axios.get(url, { timeout: 20000 });
-            if (
-                response.status === 200 &&
-                response.data &&
-                response.data.appnews &&
-                response.data.appnews.newsitems &&
-                response.data.appnews.newsitems.length > 0
-            ) {
-                return response.data.appnews.newsitems;
-            }
-            this.log.debug(this._('No news items found for appId: %s', appId));
-            return [];
-        } catch (error) {
-            this.log.error(this._('Error fetching news for game %s: %s', appId, error));
-            return [];
-        }
+        return this.safeApiCall(
+            async () => {
+                const response = await this.apiRequest(API_ENDPOINTS.GET_NEWS_FOR_APP, {
+                    appid: appId,
+                    count: count || 3,
+                    maxlength: maxLength || 300,
+                    format: 'json',
+                });
+
+                if (
+                    response.status === 200 &&
+                    response.data &&
+                    response.data.appnews &&
+                    response.data.appnews.newsitems &&
+                    response.data.appnews.newsitems.length > 0
+                ) {
+                    return response.data.appnews.newsitems;
+                }
+                this.log.debug(this._('No news items found for appId: %s', appId));
+                return [];
+            },
+            [],
+            'Error fetching news for game %s: %s',
+            appId,
+        );
     }
 
     async updateAllGamesNews() {
@@ -532,16 +601,134 @@ class Steam extends utils.Adapter {
     }
 
     async fetchRecentlyPlayed() {
-        try {
-            const apiKey = this.config.apiKey;
-            const steamID64 = this.steamID64;
-            if (!apiKey || !steamID64) {
-                return;
+        return this.safeApiCall(
+            async () => {
+                const apiKey = this.config.apiKey;
+                const steamID64 = this.steamID64;
+                if (!apiKey || !steamID64) {
+                    return false;
+                }
+
+                const response = await this.apiRequest(API_ENDPOINTS.GET_RECENTLY_PLAYED, {
+                    key: apiKey,
+                    steamid: steamID64,
+                });
+
+                // Erstelle eine Ordnerstruktur für die kürzlich gespielten Spiele, falls noch nicht vorhanden
+                await this.setObjectNotExistsAsync('recentlyPlayed', {
+                    type: 'folder',
+                    common: { name: this._('Recently Played Games') },
+                    native: {},
+                });
+
+                // Verarbeite und speichere detaillierte Informationen für jedes Spiel
+                if (response.data && response.data.response && response.data.response.games) {
+                    const games = response.data.response.games;
+
+                    // Jetzt speichern wir stattdessen eine einfache Zahl der kürzlich gespielten Spiele
+                    await this.setObjectNotExistsAsync('recentlyPlayed.count', {
+                        type: 'state',
+                        common: {
+                            name: this._('Number of Recently Played Games'),
+                            type: 'number',
+                            role: 'value',
+                            read: true,
+                            write: false,
+                        },
+                        native: {},
+                    });
+
+                    // Setze die Anzahl der kürzlich gespielten Spiele
+                    await this.setState('recentlyPlayed.count', games.length, true);
+
+                    this.log.debug(`Updated information for ${games.length} recently played games`);
+                    return true;
+                }
+                return false;
+            },
+            false,
+            'Error fetching recently played games: %s',
+        );
+    }
+
+    warnSimilarGames(gameName) {
+        // Überprüfe, ob Funktionalität aktiviert ist
+        if (!this.config.enableGameSuggestions) {
+            this.logApiInfo('warnSimilarGames', 'Game suggestions disabled in config');
+            return;
+        }
+
+        if (!this.steamAppList) {
+            this.logApiWarning('warnSimilarGames', 'No Steam app list available for suggestions');
+            return;
+        }
+
+        const search = gameName.toLowerCase();
+
+        // Helper to calculate Levenshtein distance
+        function levenshtein(a, b) {
+            if (a.length === 0) {
+                return b.length;
             }
-            const url = `https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key=${apiKey}&steamid=${steamID64}`;
-            await axios.get(url);
-        } catch (error) {
-            this.log.error(this._('Error fetching recently played games: %s', error));
+            if (b.length === 0) {
+                return a.length;
+            }
+
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    const cost = b.charAt(i - 1) === a.charAt(j - 1) ? 0 : 1;
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j] + 1, // deletion
+                        matrix[i][j - 1] + 1, // insertion
+                        matrix[i - 1][j - 1] + cost, // substitution
+                    );
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        // Reduziere die zu verarbeitende Menge für bessere Performance
+        const sampleSize = 250000;
+        let gamesToCheck = this.steamAppList;
+
+        // Wenn die Liste zu groß ist, verwende ein Sampling
+        if (gamesToCheck.length > sampleSize) {
+            const randomIndices = new Set();
+            while (randomIndices.size < sampleSize) {
+                randomIndices.add(Math.floor(Math.random() * this.steamAppList.length));
+            }
+            gamesToCheck = Array.from(randomIndices).map(i => this.steamAppList[i]);
+        }
+
+        // Finde die 5 Spiele mit der geringsten Levenshtein-Distanz
+        const similarGames = gamesToCheck
+            .filter(app => app.name && app.name.trim() !== '')
+            .map(app => ({
+                name: app.name,
+                appid: app.appid,
+                distance: levenshtein(search, app.name.toLowerCase()),
+            }))
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 5);
+
+        if (similarGames.length > 0) {
+            const similarList = similarGames.map(app => `${app.name} (AppID: ${app.appid})`);
+            this.logApiWarning(
+                'warnSimilarGames',
+                'No games found matching: %s. Did you mean: %s',
+                gameName,
+                similarList.join(', '),
+            );
+        } else {
+            this.logApiWarning('warnSimilarGames', 'No games found matching: %s. No similar games found.', gameName);
         }
     }
 
@@ -597,6 +784,41 @@ class Steam extends utils.Adapter {
             return text;
         }
         return text.replace(/%s/g, () => args.shift());
+    }
+
+    logApiError(method, error, message = 'API error') {
+        let detailedMessage = message;
+
+        if (error.response) {
+            // Server antwortete mit Fehlercode
+            detailedMessage += `: ${error.response.status} - ${error.response.statusText || 'Unknown'}`;
+            if (error.response.data && error.response.data.error) {
+                detailedMessage += ` (${error.response.data.error})`;
+            }
+        } else if (error.request) {
+            // Keine Antwort erhalten
+            detailedMessage += ': No response received';
+            if (error.code) {
+                detailedMessage += ` (${error.code})`;
+            }
+        } else {
+            // Fehler beim Einrichten der Anfrage
+            detailedMessage += `: ${error.message || 'Unknown error'}`;
+        }
+
+        this.log.error(this._(`[${method}] ${detailedMessage}`));
+    }
+
+    logApiWarning(method, message, ...args) {
+        this.log.warn(this._(`[${method}] ${message}`, ...args));
+    }
+
+    logApiInfo(method, message, ...args) {
+        this.log.info(this._(`[${method}] ${message}`, ...args));
+    }
+
+    logApiDebug(method, message, ...args) {
+        this.log.debug(this._(`[${method}] ${message}`, ...args));
     }
 }
 

@@ -27,7 +27,7 @@ This adapter allows you to integrate information from the Steam API into your io
     *   **Games to Monitor:** Configure a list of games to monitor.
     *   **Game App ID:** Stores the Steam App ID for each monitored game.
     *   **Game News:** Fetches and updates the latest news for each monitored game every 6 hours (4 times a day).
-
+    *   **Game Name Suggestions:** If a game cannot be found (e.g., due to a typo), the adapter logs a warning and suggests up to 5 similar game names from the Steam app list.
 
 *   **Recently Played Games:**
     *   **Fetches recently played games** every 15 minutes (configurable in the code).
@@ -51,6 +51,10 @@ This adapter allows you to integrate information from the Steam API into your io
 After installing and configuring the adapter, the Steam profile information, game news, recently played games, and API request statistics will be available as states in ioBroker.
 
 ## Changelog
+
+### 0.2.0 (2025-04-16)
+* (bloop16)
+    * Added function to suggest up to 5 similar game names if a game cannot be found (typo-tolerant search and warning in log).
 
 ### 0.1.2 (2025-04-15)
 * (bloop16)

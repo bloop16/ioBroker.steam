@@ -1,20 +1,20 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "news": {
-      "0.0.3": {
-        "en": "\nfixed state directory",
-        "de": "\nfestes verzeichnis",
-        "ru": "\nфиксированный государственный каталог",
-        "pt": "\ndiretório estadual fixo",
-        "nl": "\nvaste-state-map",
-        "fr": "\nrépertoire d'état fixe",
-        "it": "\ndirectory di stato fisso",
-        "es": "\ndirectorio estatal fijo",
-        "pl": "\nstały katalog stanu",
-        "uk": "\nфіксований державний каталог",
-        "zh-cn": "\n固定状态目录"
+      "0.2.0": {
+        "en": "configurable player summary intervals; game news updates every 6h; recently played games; typo-tolerant game search; improved error handling",
+        "de": "konfigurierbare Spieler-Statusintervalle; Spielnachrichten alle 6h; kürzlich gespielte Spiele; tippfehlertolerante Spielsuche; verbesserte Fehlerbehandlung",
+        "ru": "настраиваемые интервалы сводки игрока; обновления игровых новостей каждые 6 часов; недавно сыгранные игры; поиск игр с исправлением опечаток; улучшенная обработка ошибок",
+        "pt": "intervalos configuráveis de resumo do jogador; atualizações de notícias de jogos a cada 6h; jogos jogados recentemente; pesquisa de jogos tolerante a erros de digitação; tratamento de erros aprimorado",
+        "nl": "configureerbare spelerssamenvatting-intervallen; spelnieuwsupdates elke 6 uur; recent gespeelde spellen; typfouttolerant spelzoeken; verbeterde foutafhandeling",
+        "fr": "intervalles configurables de résumé du joueur; mises à jour des actualités de jeux toutes les 6h; jeux récemment joués; recherche de jeux tolérante aux fautes de frappe; gestion améliorée des erreurs",
+        "it": "intervalli configurabili di riepilogo del giocatore; aggiornamenti delle notizie di gioco ogni 6 ore; giochi giocati di recente; ricerca di giochi tollerante ai refusi; gestione degli errori migliorata",
+        "es": "intervalos configurables de resumen del jugador; actualizaciones de noticias de juegos cada 6h; juegos jugados recientemente; búsqueda de juegos tolerante a errores tipográficos; manejo de errores mejorado",
+        "pl": "konfigurowalne interwały podsumowania gracza; aktualizacje wiadomości o grach co 6 godzin; ostatnio grane gry; wyszukiwanie gier tolerujące literówki; ulepszona obsługa błędów",
+        "uk": "налаштовувані інтервали зведення гравця; оновлення ігрових новин кожні 6 годин; нещодавно зіграні ігри; пошук ігор, стійкий до друкарських помилок; покращена обробка помилок",
+        "zh-cn": "可配置的玩家摘要间隔; 每6小时更新游戏新闻; 最近玩过的游戏; 容错游戏搜索; 改进的错误处理"
       }
     },
     "titleLang": {
@@ -83,11 +83,18 @@
       }
     ]
   },
+  "protectedNative": [
+    "apiKey"
+  ],
+  "encryptedNative": [
+    "apiKey"
+  ],
   "native": {
     "steamName": "",
     "apiKey": "",
     "gameList": [],
-    "playerSummaryIntervalSec": 60
+    "playerSummaryIntervalSec": 60,
+    "enableGameSuggestions": true
   },
   "objects": [],
   "instanceObjects": [
@@ -106,55 +113,6 @@
           "es": "Dispositivo o servicio conectado",
           "pl": "Urządzenie lub usługa podłączona",
           "uk": "Пристрій або сервіс підключено",
-          "zh-cn": "设备或服务已连接"
-        },
-        "type": "boolean",
-        "role": "indicator.connected",
-        "read": true,
-        "write": false,
-        "def": false
-      },
-      "native": {}
-    },
-    {
-      "_id": "playerName",
-      "type": "state",
-      "common": {
-        "name": {
-          "en": "Player Name",
-          "de": "Spielername",
-          "ru": "Имя игрока",
-          "pt": "Nome do jogador",
-          "nl": "Spelernaam",
-          "fr": "Nom du joueur",
-          "it": "Nome del giocatore",
-          "es": "Nombre del jugador",
-          "pl": "Nazwa gracza",
-          "uk": "Ім'я гравця",
-          "zh-cn": "玩家姓名"
-        },
-        "type": "string",
-        "role": "state",
-        "read": true,
-        "write": false
-      },
-      "native": {}
-    },
-    {
-      "_id": "info.connection",
-      "type": "state",
-      "common": {
-        "name": {
-          "en": "Device or Service connected",
-          "de": "Gerät oder Dienst verbunden",
-          "ru": "Устройство или сервис подключен",
-          "pt": "Dispositivo ou serviço conectado",
-          "nl": "Apparaat of service verbonden",
-          "fr": "Appareil ou service connecté",
-          "it": "Dispositivo o servizio connesso",
-          "es": "Dispositivo o servicio conectado",
-          "pl": "Urządzenie lub usługa podłączona",
-          "uk": "Пристрій сервіс підключено",
           "zh-cn": "设备或服务已连接"
         },
         "type": "boolean",

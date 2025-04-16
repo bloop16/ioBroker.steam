@@ -34,5 +34,7 @@
     "playerNameName": "Spelernaam",
     "playerStateName": "Spelerstaat",
     "profileURLName": "Profiel -URL",
-    "steamID64Name": "Steam ID64"
+    "steamID64Name": "Steam ID64",
+    "Enable game suggestions": "Schakel de suggesties van spelnamen in",
+    "Enable game suggestions help": "Indien ingeschakeld, suggereert vergelijkbare spelnamen als een game niet kan worden gevonden"
 }

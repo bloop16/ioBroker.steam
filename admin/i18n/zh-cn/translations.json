@@ -34,5 +34,7 @@
     "playerNameName": "玩家名称",
     "playerStateName": "玩家状态",
     "profileURLName": "配置文件URL",
-    "steamID64Name": "Steam ID64"
+    "steamID64Name": "Steam ID64",
+    "Enable game suggestions": "启用游戏名称建议",
+    "Enable game suggestions help": "启用后，建议如果找不到游戏，则建议类似的游戏名称"
 }

@@ -34,5 +34,7 @@
     "playerNameName": "Nome giocatore",
     "playerStateName": "Stato del giocatore",
     "profileURLName": "URL del profilo",
-    "steamID64Name": "Steam ID64"
+    "steamID64Name": "Steam ID64",
+    "Enable game suggestions": "Abilita i suggerimenti del nome del gioco",
+    "Enable game suggestions help": "Se abilitato, suggerisce nomi di giochi simili se non è possibile trovare un gioco"
 }

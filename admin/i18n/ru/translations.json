@@ -34,5 +34,7 @@
     "playerNameName": "Имя игрока",
     "playerStateName": "Государство игрока",
     "profileURLName": "Профиль URL",
-    "steamID64Name": "Steam ID64"
+    "steamID64Name": "Steam ID64",
+    "Enable game suggestions": "Включить предложения по названию игры",
+    "Enable game suggestions help": "При включении предлагается аналогичные имена игр, если игра не может быть найдена"
 }
