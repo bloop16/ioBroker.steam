@@ -1,9 +1,9 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "news": {
-      "0.2.1": {
+      "0.2.2": {
         "en": "configurable player summary intervals; game news updates every 6h; recently played games; typo-tolerant game search; improved error handling",
         "de": "konfigurierbare Spieler-Statusintervalle; Spielnachrichten alle 6h; kürzlich gespielte Spiele; tippfehlertolerante Spielsuche; verbesserte Fehlerbehandlung",
         "ru": "настраиваемые интервалы сводки игрока; обновления игровых новостей каждые 6 часов; недавно сыгранные игры; поиск игр с исправлением опечаток; улучшенная обработка ошибок",
