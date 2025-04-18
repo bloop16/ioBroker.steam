@@ -36,5 +36,14 @@
     "profileURLName": "URL profilu",
     "steamID64Name": "Para ID64",
     "Enable game suggestions": "Włącz sugestie dotyczące nazwy gry",
-    "Enable game suggestions help": "Po włączeniu sugeruje podobne nazwy gier, jeśli nie można znaleźć gry"
+    "Enable game suggestions help": "Po włączeniu sugeruje podobne nazwy gier, jeśli nie można znaleźć gry",
+    "Enable owned games (needs adapter restart)": "Włącz gry własności (potrzebuje restartu adaptera)",
+    "Game Stats URL": "URL statystyk gier",
+    "Has Community Stats": "Ma statystyki społeczności",
+    "Currently Playing": "Obecnie gra",
+    "Playtime (2 weeks)": "Playtime (2 tygodnie)",
+    "Playtime (total)": "Playtime (ogółem)",
+    "Last Played": "Ostatni gra",
+    "AppID": "AppId",
+    "Recently Played": "Niedawno grał"
 }

@@ -36,5 +36,14 @@
     "profileURLName": "URL -адреса профілю",
     "steamID64Name": "Steam id64",
     "Enable game suggestions": "Увімкнути пропозиції назви гри",
-    "Enable game suggestions help": "Якщо ввімкнено, пропонує подібні імена ігор, якщо неможливо знайти гру"
+    "Enable game suggestions help": "Якщо ввімкнено, пропонує подібні імена ігор, якщо неможливо знайти гру",
+    "Enable owned games (needs adapter restart)": "Увімкнути ігри, що належать (потребують перезавантаження адаптера)",
+    "Game Stats URL": "URL -адреса статистики гри",
+    "Has Community Stats": "Має статистику громади",
+    "Currently Playing": "В даний час грає",
+    "Playtime (2 weeks)": "Гра (2 тижні)",
+    "Playtime (total)": "Гра (загалом)",
+    "Last Played": "Останній грав",
+    "AppID": "Аплікаційний",
+    "Recently Played": "Нещодавно зіграв"
 }

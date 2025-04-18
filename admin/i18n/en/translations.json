@@ -19,6 +19,14 @@
     "Enabled": "Enabled",
     "Current Game": "Current Game",
     "Game App ID": "Game App ID",
+    "Game Icon URL": "Game Icon URL",
+    "Game Logo URL": "Game Logo URL",
+    "Game Stats URL": "Game Stats URL",
+    "Has Community Stats": "Has Community Stats",
+    "Currently Playing": "Currently Playing",
+    "Playtime (2 weeks)": "Playtime (2 weeks)",
+    "Playtime (total)": "Playtime (total)",
+    "Last Played": "Last Played",
     "Recently Played Games": "Recently Played Games",
     "Total Recently Played Games": "Total Recently Played Games",
     "Game News": "Game News",
@@ -29,5 +37,8 @@
     "Player summary interval (sec)": "Player summary interval (sec)",
     "Player summary interval (sec) help": "(minimum 15 seconds)",
     "Enable game suggestions": "Enable game name suggestions",
-    "Enable game suggestions help": "When enabled, suggests similar game names if a game cannot be found"
+    "Enable game suggestions help": "When enabled, suggests similar game names if a game cannot be found",
+    "Enable owned games (needs adapter restart)": "Enable owned games (needs adapter restart)",
+    "AppID": "AppID",
+    "Recently Played": "Recently Played"
 }

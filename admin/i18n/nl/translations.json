@@ -36,5 +36,14 @@
     "profileURLName": "Profiel -URL",
     "steamID64Name": "Steam ID64",
     "Enable game suggestions": "Schakel de suggesties van spelnamen in",
-    "Enable game suggestions help": "Indien ingeschakeld, suggereert vergelijkbare spelnamen als een game niet kan worden gevonden"
+    "Enable game suggestions help": "Indien ingeschakeld, suggereert vergelijkbare spelnamen als een game niet kan worden gevonden",
+    "Enable owned games (needs adapter restart)": "Eigendomsgames inschakelen (heeft adapter opnieuw opgestart)",
+    "Game Stats URL": "Spelstatistieken URL",
+    "Has Community Stats": "Heeft gemeenschapsstatistieken",
+    "Currently Playing": "Momenteel spelen",
+    "Playtime (2 weeks)": "Speeltijd (2 weken)",
+    "Playtime (total)": "Speeltijd (totaal)",
+    "Last Played": "Laatst gespeeld",
+    "AppID": "Appid",
+    "Recently Played": "Onlangs gespeeld"
 }

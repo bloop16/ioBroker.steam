@@ -28,29 +28,59 @@ This adapter allows you to integrate information from the Steam API into your io
     *   **Game App ID:** Stores the Steam App ID for each monitored game.
     *   **Game News:** Fetches and updates the latest news for each monitored game every 6 hours (4 times a day).
     *   **Game Name Suggestions:** If a game cannot be found (e.g., due to a typo), the adapter logs a warning and suggests up to 5 similar game names from the Steam app list.
+    *   **Auto-completion:** When adding games, the adapter automatically completes missing information - if you provide a game name, it finds the AppID, and vice versa.
+    *   **Owned Games Import:** Imports all your owned games from your Steam library with a single click.
+    *   **Enhanced Game Info:** Displays game icons, logos, community stats URLs, playtime statistics, and more.
+    *   **Automatic Game Detection:** Automatically detects and creates states for games as they are played.
 
 *   **Recently Played Games:**
     *   **Fetches recently played games** every 15 minutes (configurable in the code).
     *   **recentlyPlayed** is also updated immediately whenever the `currentGame` changes.
+    *   **Playtime Statistics:** Tracks playtime for last 2 weeks and total playtime for each game.
 
 *   **API Request Management:**
     *   **GetPlayerSummaries:** Requests player summaries at a configurable interval (minimum 15 seconds, default 60 seconds).
     *   **Daily Request Count:** Monitors the number of GetPlayerSummaries API requests to avoid exceeding the limit of 10,000 requests per day.
     *   **Automatic Reset:** Automatically resets the daily request count at 0:00 (midnight).
-    *   **Buffer for Restarts:** Takes into account a buffer to ensure API requests during adapter restarts or connection interruptions.
+    *   **Optimized API Usage:** Prevents duplicate API calls and adds proper cooldowns between requests.
+    *   **Steam AppList Caching:** Efficiently caches the Steam application list to reduce API calls.
 
 ## Configuration
 
 1.  **Steam Name:** Enter your Steam username.
 2.  **Steam API Key:** Enter your Steam API key. You can generate an API key [here](https://steamcommunity.com/dev/apikey).
 3.  **Player summary interval:** Set how often to request player summaries (minimum 15 seconds).
-4.  **Games to Monitor:** Add games to monitor.
+4.  **Enable game suggestions:** Toggle whether similar game names should be suggested when a game can't be found.
+5.  **Enable owned games:** Import all your owned games from Steam into your configuration (requires adapter restart).
+6.  **Games to Monitor:** Add games to monitor. You can provide either the name or AppID - the adapter will automatically fill in the missing information.
 
 ## Usage
 
 After installing and configuring the adapter, the Steam profile information, game news, recently played games, and API request statistics will be available as states in ioBroker.
 
+The adapter creates several state folders:
+- **steam.0** - Contains general profile information and connection status
+- **steam.0.games** - Contains monitored games with their AppIDs, news, and statistics
+- **steam.0.recentlyPlayed** - Contains information about recently played games
+
+When a game is being played, its `isPlaying` state will be set to true, and all data for that game will be automatically updated.
+
 ## Changelog
+
+### WORKING ON
+* (bloop16) set IsPlaying in Game folder when currentGame and / or currentGameAppId is changing.
+
+### 0.3.0 (2025-04-18)
+* (bloop16)
+    * Added auto-completion for game names and AppIDs
+    * Added import of all owned games from Steam library
+    * Enhanced game information with icons, logos, and community stats
+    * Fixed adapter termination issues
+    * Added automatic game detection when player starts playing
+    * Optimized API usage with reduced duplicate calls
+    * Added proper cooldowns between API requests
+    * Added game image URLs and additional statistics
+    * Fixed configuration issues with owned games
 
 ### 0.2.3 (2025-04-18)
 * (bloop16)

@@ -36,5 +36,14 @@
     "profileURLName": "URL de perfil",
     "steamID64Name": "Vapor ID64",
     "Enable game suggestions": "Habilitar sugerencias de nombre del juego",
-    "Enable game suggestions help": "Cuando está habilitado, sugiere nombres de juegos similares si no se puede encontrar un juego"
+    "Enable game suggestions help": "Cuando está habilitado, sugiere nombres de juegos similares si no se puede encontrar un juego",
+    "Enable owned games (needs adapter restart)": "Habilitar juegos propios (necesita reiniciar el adaptador)",
+    "Game Stats URL": "URL de estadísticas del juego",
+    "Has Community Stats": "Tiene estadísticas de la comunidad",
+    "Currently Playing": "Actualmente jugando",
+    "Playtime (2 weeks)": "Tiempo de juego (2 semanas)",
+    "Playtime (total)": "Tiempo de juego (total)",
+    "Last Played": "Última jugada",
+    "AppID": "Aplicar",
+    "Recently Played": "Recientemente jugado"
 }

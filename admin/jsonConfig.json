@@ -40,7 +40,7 @@
                     "default": 60,
                     "newLine": true,
                     "help": "Player summary interval (sec) help"
-                },
+                },               
                 "enableGameSuggestions": {
                     "type": "checkbox",
                     "label": "Enable game name suggestions",
@@ -58,6 +58,17 @@
             "type": "panel",
             "label": "Games",
             "items": {
+                "enableOwnedGames": {
+                    "type": "checkbox",
+                    "label": "Enable owned games (needs adapter restart)",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 4,
+                    "xl": 4,
+                    "newLine": true,
+                    "default": false
+                },
                 "gameList": {
                     "type": "table",
                     "xs": 12,
@@ -70,16 +81,25 @@
                         {
                             "type": "text",
                             "attr": "gameName",
-                            "width": "80%",
+                            "width": "70%",
                             "title": "Game Name",
                             "filter": true,
                             "sort": true,
                             "default": "Counter-Strike 2"
                         },
                         {
+                            "type": "number",
+                            "attr": "appId",
+                            "width": "20%",
+                            "title": "AppID",
+                            "filter": true,
+                            "sort": true,
+                            "default": 0
+                        },
+                        {
                             "type": "checkbox",
                             "attr": "enabled",
-                            "width": "20%",
+                            "width": "10%",
                             "title": "Enabled",
                             "filter": false,
                             "sort": false,

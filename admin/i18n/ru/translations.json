@@ -36,5 +36,14 @@
     "profileURLName": "Профиль URL",
     "steamID64Name": "Steam ID64",
     "Enable game suggestions": "Включить предложения по названию игры",
-    "Enable game suggestions help": "При включении предлагается аналогичные имена игр, если игра не может быть найдена"
+    "Enable game suggestions help": "При включении предлагается аналогичные имена игр, если игра не может быть найдена",
+    "Enable owned games (needs adapter restart)": "Включить игры с собственными (нуждается в перезапуске адаптера)",
+    "Game Stats URL": "Статистика игры URL",
+    "Has Community Stats": "Имеет статистику сообщества",
+    "Currently Playing": "В настоящее время играет",
+    "Playtime (2 weeks)": "Время игры (2 недели)",
+    "Playtime (total)": "Время игры (всего)",
+    "Last Played": "Последний раз играл",
+    "AppID": "Аппдасир",
+    "Recently Played": "Недавно сыграл"
 }

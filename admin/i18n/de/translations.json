@@ -35,6 +35,15 @@
     "playerStateName": "Spielerstatus",
     "profileURLName": "Profil-URL",
     "steamID64Name": "Steam ID64",
-    "Enable game suggestions": "Aktivieren Sie Vorschläge für Spielnamen",
-    "Enable game suggestions help": "Wenn es aktiviert ist, schlägt dies ähnliche Spielnamen vor, wenn ein Spiel nicht gefunden werden kann"
+    "Enable game suggestions": "Aktiviert Vorschläge für Spielnamen",
+    "Enable owned games (needs adapter restart)": "Eigene Spiele aktivieren (erfordert Adapter neustart)",
+    "Game Stats URL": "Spielstatistik URL",
+    "Has Community Stats": "Hat Community -Statistiken",
+    "Currently Playing": "Gerade spielen",
+    "Playtime (2 weeks)": "Spielzeit (2 Wochen)",
+    "Playtime (total)": "Spielzeit (Gesamt)",
+    "Last Played": "Zuletzt gespielt",
+    "Enable game suggestions help": "Wenn es aktiviert ist, schlägt dies ähnliche Spielnamen vor, wenn ein Spiel nicht gefunden werden kann",
+    "AppID": "Appid",
+    "Recently Played": "Kürzlich gespielt"
 }

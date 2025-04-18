@@ -70,6 +70,7 @@ class Steam extends utils.Adapter {
         this.isFetchingPlayerSummary = false;
         this.isShuttingDown = false;
         this._apiTimeouts = []; // Track all API timeouts for cleanup
+        this._fetchingPlayerSummaryStartTime = null; // Timestamp tracking for safe resets
 
         this._lastApiCallTime = {
             playerSummary: 0,
@@ -77,6 +78,9 @@ class Steam extends utils.Adapter {
             newsForGame: {},
             appList: 0,
         };
+
+        this._lastActiveGameUpdate = 0;
+        this._activeGameUpdateCooldown = 5 * 60 * 1000; // 5 minutes
 
         this.on('ready', this.onReady.bind(this));
         this.on('stateChange', this.onStateChange.bind(this));
@@ -120,8 +124,7 @@ class Steam extends utils.Adapter {
         // Explicitly reset shutdown flag at startup
         this.isShuttingDown = false;
         this._apiTimeouts = [];
-        this._initialStartup = true; // Add this flag for tracking initial startup
-
+        this._initialStartup = true;
         await this.checkAndCreateStates();
 
         const apiKey = this.config.apiKey;
@@ -162,6 +165,11 @@ class Steam extends utils.Adapter {
                 // Use the stored Steam ID
                 this.steamID64 = storedSteamIdObj.val;
                 this.log.info(this._('Using stored Steam ID: %s', this.steamID64));
+            }
+
+            // Check if we should load owned games
+            if (this.config.enableOwnedGames) {
+                await this.getOwnedGamesAndUpdateConfig();
             }
 
             await this.setupGames();
@@ -246,36 +254,178 @@ class Steam extends utils.Adapter {
         }
     }
 
+    async getOwnedGamesAndUpdateConfig() {
+        this.log.info('Fetching owned games from Steam...');
+
+        if (!this.steamID64 || !this.config.apiKey) {
+            this.log.error('Cannot fetch owned games: Missing Steam ID or API key');
+            return false;
+        }
+
+        try {
+            // Define the API endpoint for GetOwnedGames
+            const OWNED_GAMES_ENDPOINT = `${API_BASE_URL}/IPlayerService/GetOwnedGames/v0001/`;
+
+            // Make the API call
+            const response = await this.apiRequest(OWNED_GAMES_ENDPOINT, {
+                key: this.config.apiKey,
+                steamid: this.steamID64,
+                include_appinfo: 1, // Include game names
+                include_played_free_games: 1, // Include free games that have been played
+            });
+
+            // Check if we got a valid response
+            if (
+                response &&
+                response.data &&
+                response.data.response &&
+                response.data.response.games &&
+                Array.isArray(response.data.response.games)
+            ) {
+                const ownedGames = response.data.response.games;
+                this.log.info(`Found ${ownedGames.length} owned games`);
+
+                // Create or update gameList in config
+                if (!this.config.gameList) {
+                    this.config.gameList = [];
+                }
+
+                // Keep track of existing games to avoid duplicates
+                const existingAppIds = new Set(this.config.gameList.map(game => Number(game.appId)));
+
+                // Process each owned game
+                for (const game of ownedGames) {
+                    // Process and update game data in states
+                    await this.processOwnedGame(game);
+
+                    if (!existingAppIds.has(game.appid)) {
+                        // Add new game to config
+                        this.config.gameList.push({
+                            gameName: game.name,
+                            appId: game.appid,
+                            enabled: true,
+                        });
+
+                        this.log.debug(`Added owned game: ${game.name} (${game.appid})`);
+                    }
+                }
+
+                // Save the updated configuration without causing restart
+                try {
+                    const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
+                    if (obj) {
+                        obj.native.gameList = this.config.gameList;
+                        // Set noUpdate to true to prevent adapter restart
+                        await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, obj, { noUpdate: true });
+                        this.log.info(`Updated configuration with ${this.config.gameList.length} games`);
+
+                        // Disable the flag to prevent fetching on next startup
+                        obj.native.enableOwnedGames = false;
+                        await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, obj, { noUpdate: true });
+                        this.log.info('Disabled "Enable owned games" option to prevent refetching');
+                    }
+                } catch (err) {
+                    this.log.error(`Failed to update configuration with owned games: ${err}`);
+                }
+
+                return true;
+            }
+            this.log.warn('Invalid or empty response from GetOwnedGames API');
+            return false;
+        } catch (error) {
+            this.log.error(`Error fetching owned games: ${error}`);
+            return false;
+        }
+    }
+
     async fetchAndSetData(apiKey, steamID64, retryCount = 0) {
-        if (this.isFetchingPlayerSummary) {
-            this.logApiDebug('fetchAndSetData', 'Request skipped because another is running');
+        // Add timestamp check to prevent calls that are too close together
+        const now = Date.now();
+        const lastCallTime = this._lastApiCallTime.playerSummary || 0;
+        const timeSinceLastCall = now - lastCallTime;
+        const minInterval = 5000; // 5 seconds minimum between calls
+
+        if (timeSinceLastCall < minInterval) {
+            this.logApiDebug('fetchAndSetData', `Call too frequent, minimum interval is ${minInterval}ms`);
             return;
         }
+
+        // Check if we're already fetching and skip if so
+        if (this.isFetchingPlayerSummary) {
+            this.logApiDebug('fetchAndSetData', 'Request skipped because another is running');
+
+            // Add a failsafe: if flag has been set for more than 2 minutes, reset it
+            if (this._fetchingPlayerSummaryStartTime && now - this._fetchingPlayerSummaryStartTime > 120000) {
+                this.log.warn('Force resetting fetchAndSetData lock after timeout');
+                this.isFetchingPlayerSummary = false;
+                this._fetchingPlayerSummaryStartTime = null;
+            }
+            return;
+        }
+
+        // Set the flag and timestamp
         this.isFetchingPlayerSummary = true;
+        this._fetchingPlayerSummaryStartTime = now;
+        this._lastApiCallTime.playerSummary = now;
+
         try {
             if (this.dailyRequestCount < 8000) {
                 // Use the class-level steamID64 variable instead of fetching from state
                 if (!this.steamID64) {
                     this.logApiError('fetchAndSetData', new Error('Steam ID not available in memory'));
+                    this.isFetchingPlayerSummary = false;
+                    this._fetchingPlayerSummaryStartTime = null;
                     return;
                 }
-                await this.getPlayerSummaries(apiKey, this.steamID64);
-                this.dailyRequestCount++;
-                await this.setState('info.dailyRequestCount', this.dailyRequestCount, true);
+
+                const success = await this.getPlayerSummaries(apiKey, this.steamID64);
+
+                if (success) {
+                    this.dailyRequestCount++;
+                    await this.setState('info.dailyRequestCount', this.dailyRequestCount, true);
+
+                    // If we have a current game, update its data after player summary succeeds
+                    const currentGameState = await this.getStateAsync('currentGame');
+                    if (currentGameState && currentGameState.val) {
+                        // Call updateActiveGame directly here, without setTimeout
+                        await this.updateActiveGame();
+                    }
+                }
             } else {
                 this.logApiWarning('fetchAndSetData', 'Daily API request limit reached');
             }
         } catch (error) {
             this.logApiError('fetchAndSetData', error, 'Error fetching data');
+
             if (error.response && error.response.status === 429) {
+                // Only retry up to MAX_RETRIES times
+                if (retryCount >= RATE_LIMIT_CONFIG.MAX_RETRIES) {
+                    this.log.error(`Maximum retries (${RATE_LIMIT_CONFIG.MAX_RETRIES}) reached for API call.`);
+                    this.isFetchingPlayerSummary = false;
+                    this._fetchingPlayerSummaryStartTime = null;
+                    return;
+                }
+
                 const waitTime = Math.pow(2, retryCount || 0) * RATE_LIMIT_CONFIG.RETRY_BASE_TIME;
                 this.logApiWarning('fetchAndSetData', 'Rate limit exceeded. Retrying in %s minutes.', waitTime / 60000);
+
+                // Reset flag BEFORE scheduling retry
+                this.isFetchingPlayerSummary = false;
+                this._fetchingPlayerSummaryStartTime = null;
+
+                // Schedule a retry
                 setTimeout(() => {
                     this.fetchAndSetData(apiKey, null, (retryCount || 0) + 1);
                 }, waitTime);
+
+                return; // Exit early
             }
         } finally {
-            this.isFetchingPlayerSummary = false;
+            // Only reset flags if we didn't already reset them in the rate limiting case
+            if (this.isFetchingPlayerSummary) {
+                this.isFetchingPlayerSummary = false;
+                this._fetchingPlayerSummaryStartTime = null;
+            }
         }
     }
 
@@ -548,6 +698,131 @@ class Steam extends utils.Adapter {
             },
             native: {},
         });
+
+        // Add additional states for Steam game information
+        await this.setObjectNotExistsAsync(`games.${gameId}.playtime_2weeks`, {
+            type: 'state',
+            common: {
+                name: this._('Playtime (2 weeks)'),
+                type: 'number',
+                role: 'value',
+                unit: 'min',
+                read: true,
+                write: false,
+            },
+            native: {},
+        });
+
+        await this.setObjectNotExistsAsync(`games.${gameId}.playtime_forever`, {
+            type: 'state',
+            common: {
+                name: this._('Playtime (total)'),
+                type: 'number',
+                role: 'value',
+                unit: 'min',
+                read: true,
+                write: false,
+            },
+            native: {},
+        });
+
+        await this.setObjectNotExistsAsync(`games.${gameId}.icon_url`, {
+            type: 'state',
+            common: {
+                name: this._('Game Icon URL'),
+                type: 'string',
+                role: 'url',
+                read: true,
+                write: false,
+            },
+            native: {},
+        });
+
+        await this.setObjectNotExistsAsync(`games.${gameId}.logo_url`, {
+            type: 'state',
+            common: {
+                name: this._('Game Logo URL'),
+                type: 'string',
+                role: 'url',
+                read: true,
+                write: false,
+            },
+            native: {},
+        });
+
+        await this.setObjectNotExistsAsync(`games.${gameId}.stats_url`, {
+            type: 'state',
+            common: {
+                name: this._('Game Stats URL'),
+                type: 'string',
+                role: 'url',
+                read: true,
+                write: false,
+            },
+            native: {},
+        });
+
+        await this.setObjectNotExistsAsync(`games.${gameId}.has_stats`, {
+            type: 'state',
+            common: {
+                name: this._('Has Community Stats'),
+                type: 'boolean',
+                role: 'indicator',
+                read: true,
+                write: false,
+            },
+            native: {},
+        });
+    }
+
+    async processOwnedGame(gameData) {
+        try {
+            const gameName = gameData.name || `Unknown Game (${gameData.appid})`;
+            const gameId = gameName.replace(/[^a-zA-Z0-9]/g, '_');
+
+            // Create game states if they don't exist
+            await this.createGameStates(gameId, gameName);
+
+            // Update basic game info
+            await this.setState(`games.${gameId}.name`, gameName, true);
+            await this.setState(`games.${gameId}.gameAppId`, gameData.appid, true);
+
+            // Update playtime information
+            if (gameData.playtime_2weeks !== undefined) {
+                await this.setState(`games.${gameId}.playtime_2weeks`, gameData.playtime_2weeks, true);
+            } else {
+                await this.setState(`games.${gameId}.playtime_2weeks`, 0, true);
+            }
+
+            if (gameData.playtime_forever !== undefined) {
+                await this.setState(`games.${gameId}.playtime_forever`, gameData.playtime_forever, true);
+            }
+
+            // Create and update image URLs
+            if (gameData.img_icon_url) {
+                const iconUrl = `http://media.steampowered.com/steamcommunity/public/images/apps/${gameData.appid}/${gameData.img_icon_url}.jpg`;
+                await this.setState(`games.${gameId}.icon_url`, iconUrl, true);
+            }
+
+            if (gameData.img_logo_url) {
+                const logoUrl = `http://media.steampowered.com/steamcommunity/public/images/apps/${gameData.appid}/${gameData.img_logo_url}.jpg`;
+                await this.setState(`games.${gameId}.logo_url`, logoUrl, true);
+            }
+
+            // Update stats information
+            if (gameData.has_community_visible_stats !== undefined) {
+                await this.setState(`games.${gameId}.has_stats`, gameData.has_community_visible_stats, true);
+
+                if (gameData.has_community_visible_stats) {
+                    const statsUrl = `http://steamcommunity.com/profiles/${this.steamID64}/stats/${gameData.appid}`;
+                    await this.setState(`games.${gameId}.stats_url`, statsUrl, true);
+                }
+            }
+
+            this.log.debug(`Updated game data for ${gameName}`);
+        } catch (error) {
+            this.log.warn(`Error processing owned game ${gameData.appid}: ${error}`);
+        }
     }
 
     async addNewGame(gameData) {
@@ -585,8 +860,9 @@ class Steam extends utils.Adapter {
                 native: {},
             });
 
-            // Skip updating configuration during adapter runtime
-            // Just create states and fetch initial data
+            let configUpdated = false;
+
+            // Process each game in the configuration
             for (const game of this.config.gameList) {
                 if (!game || typeof game !== 'object') {
                     this.log.warn(this._('Invalid game entry in configuration: %s', JSON.stringify(game)));
@@ -595,25 +871,43 @@ class Steam extends utils.Adapter {
 
                 if (game.enabled) {
                     try {
-                        // Use existing data without updating configuration
                         let gameData = null;
                         let gameId = null;
+                        let configNeedsUpdate = false;
 
                         if (game.appId && !isNaN(parseInt(game.appId)) && parseInt(game.appId) > 0) {
-                            // Use existing game name if available, or find it
-                            if (game.gameName) {
-                                gameData = { appId: parseInt(game.appId), name: game.gameName };
-                            } else {
+                            // If we have the AppID but missing the name, look it up
+                            if (!game.gameName) {
+                                this.log.info(`Looking up name for AppID ${game.appId}`);
                                 gameData = await this.findGame(parseInt(game.appId), true);
+
+                                if (gameData && gameData.name) {
+                                    // Update config with the found name
+                                    game.gameName = gameData.name;
+                                    configNeedsUpdate = true;
+                                    this.log.info(`Updated game name to ${gameData.name} for AppID ${game.appId}`);
+                                }
+                            } else {
+                                gameData = { appId: parseInt(game.appId), name: game.gameName };
                             }
                         } else if (game.gameName) {
-                            // Only lookup app ID if needed for API calls but don't update config
-                            if (!this._initialStartup) {
-                                // Skip intensive lookups on first run
-                                gameData = await this.findGame(game.gameName, false);
+                            // If we have the name but missing the AppID, look it up
+                            this.log.info(`Looking up AppID for game ${game.gameName}`);
+                            gameData = await this.findGame(game.gameName, false);
+
+                            if (gameData && gameData.appId) {
+                                // Update config with the found AppID
+                                game.appId = gameData.appId;
+                                configNeedsUpdate = true;
+                                this.log.info(`Updated AppID to ${gameData.appId} for game ${game.gameName}`);
                             }
                         }
 
+                        if (configNeedsUpdate) {
+                            configUpdated = true;
+                        }
+
+                        // Process the game as usual for state creation
                         if (gameData) {
                             gameId = gameData.name.replace(/[^a-zA-Z0-9]/g, '_');
                             await this.createGameStates(gameId, gameData.name);
@@ -623,10 +917,12 @@ class Steam extends utils.Adapter {
                                 await this.setState(`games.${gameId}.gameAppId`, gameData.appId, true);
                             }
 
-                            // Get news in non-blocking way, but only if we have an app ID
-                            if (gameData.appId && !this._initialStartup) {
+                            // Get news in non-blocking way
+                            if (gameData.appId) {
                                 this.fetchGameNewsNonBlocking(gameData.appId, gameId, gameData.name);
                             }
+                        } else {
+                            this.log.warn(`Could not find or process game: ${game.gameName || game.appId}`);
                         }
                     } catch (err) {
                         this.log.error(this._('Error processing game %s: %s', game.gameName || game.appId, err));
@@ -634,8 +930,25 @@ class Steam extends utils.Adapter {
                 }
             }
 
-            // Never save configuration changes during runtime
-            this.log.info('Game setup completed without modifying configuration');
+            // Update configuration if needed, but only after processing all games
+            if (configUpdated) {
+                try {
+                    // Get current config
+                    const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
+                    if (obj) {
+                        // Update just the gameList without changing other configs
+                        obj.native.gameList = this.config.gameList;
+
+                        // Use setForeignObject with the noUpdate flag to prevent restart
+                        await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, obj);
+                        this.log.info('Updated game configuration with new information');
+                    }
+                } catch (err) {
+                    this.log.error(`Failed to save updated game configuration: ${err}`);
+                }
+            }
+
+            this.log.info('Game setup completed');
         } catch (error) {
             this.log.error(this._('Error during setupGames: %s', error));
         }
@@ -934,9 +1247,9 @@ class Steam extends utils.Adapter {
             ) {
                 const games = response.data.response.games;
 
-                // Process each game
+                // Process each game with the full data processing
                 for (const game of games) {
-                    await this.processRecentlyPlayedGame(game);
+                    await this.processOwnedGame(game);
                 }
 
                 return true;
@@ -1158,6 +1471,87 @@ class Steam extends utils.Adapter {
         }
     }
 
+    async updateActiveGame() {
+        try {
+            // Add cooldown to prevent excessive updates
+            const now = Date.now();
+            const elapsed = now - this._lastActiveGameUpdate;
+
+            if (elapsed < this._activeGameUpdateCooldown) {
+                this.log.debug(
+                    `Active game update skipped - cooldown active (${Math.round(elapsed / 1000)}s elapsed, need ${Math.round(this._activeGameUpdateCooldown / 1000)}s)`,
+                );
+                return false;
+            }
+
+            // Get the current game name
+            const currentGameState = await this.getStateAsync('currentGame');
+            if (!currentGameState || !currentGameState.val) {
+                return false;
+            }
+
+            const currentGame = currentGameState.val;
+            const safeGameName = currentGame.replace(/[^a-zA-Z0-9]/g, '_');
+
+            // Check if this game exists in our states
+            const gameExists = await this.getObjectAsync(`games.${safeGameName}`);
+            if (!gameExists) {
+                this.log.debug(`Game ${currentGame} not found in states, cannot update`);
+                return false;
+            }
+
+            // Get the current appId
+            const appIdState = await this.getStateAsync(`games.${safeGameName}.gameAppId`);
+            if (!appIdState || !appIdState.val) {
+                this.log.debug(`No AppID available for ${currentGame}, cannot update`);
+                return false;
+            }
+
+            const appId = appIdState.val;
+
+            // Update the timestamp
+            this._lastActiveGameUpdate = now;
+
+            // Make a direct API call for this specific game only
+            this.log.info(`Updating active game data for ${currentGame} (${appId})`);
+
+            // First prioritize playtime info from recently played games
+            const response = await this.apiRequest(API_ENDPOINTS.GET_RECENTLY_PLAYED, {
+                key: this.config.apiKey,
+                steamid: this.steamID64,
+                count: 1, // Limit to just 1 game to reduce payload size
+            });
+
+            if (
+                response &&
+                response.data &&
+                response.data.response &&
+                response.data.response.games &&
+                Array.isArray(response.data.response.games)
+            ) {
+                // Find this specific game in the response
+                const gameData = response.data.response.games.find(g => g.appid == appId);
+
+                if (gameData) {
+                    // Make sure to set isPlaying explicitly
+                    await this.setState(`games.${safeGameName}.isPlaying`, true, true);
+
+                    // Update game data
+                    await this.processOwnedGame(gameData);
+
+                    this.log.debug(`Successfully updated active game: ${currentGame}`);
+                    return true;
+                }
+            }
+
+            this.log.debug(`Could not find ${currentGame} in recently played API response`);
+            return false;
+        } catch (error) {
+            this.log.warn(`Error updating active game data: ${error}`);
+            return false;
+        }
+    }
+
     async onUnload(callback) {
         try {
             // First flag we're shutting down to prevent new requests
@@ -1199,26 +1593,31 @@ class Steam extends utils.Adapter {
     }
 
     async onStateChange(id, state) {
-        if (this.log.level === 'debug') {
-            if (state) {
-                this.log.debug(this._('State %s changed: %s (ack = %s)', id, state.val, state.ack));
-            } else {
-                this.log.debug(this._('State %s deleted', id));
-            }
+        if (state) {
+            this.log.debug(`State ${id} changed: ${state.val} (ack = ${state.ack})`);
+        } else {
+            this.log.debug(`State ${id} deleted`);
         }
 
-        // Check if playerState has changed and is acknowledged
-        if (id === `${this.namespace}.playerState` && state && state.ack) {
-            this.log.info(`Player state changed to ${state.val}, triggering recently played fetch`);
+        // Simplified approach for handling game state changes
+        if (id === `${this.namespace}.currentGame` && state && state.ack) {
+            const currentGame = state.val;
+            const gameChannels = await this.getChannelsOfAsync('games');
 
-            // Add a small delay to allow Steam to update their data
-            setTimeout(async () => {
-                try {
-                    await this.fetchRecentlyPlayed();
-                } catch (e) {
-                    this.log.error(`Error fetching recently played after state change: ${e}`);
+            // Reset all games to not playing
+            for (const channel of gameChannels) {
+                const gameId = channel._id.split('.').pop();
+                await this.setState(`games.${gameId}.isPlaying`, false, true);
+            }
+
+            // If there's a current game, find and set it to playing
+            if (currentGame) {
+                const safeGameName = currentGame.replace(/[^a-zA-Z0-9]/g, '_');
+                const gameObj = await this.getObjectAsync(`games.${safeGameName}`);
+                if (gameObj) {
+                    await this.setState(`games.${safeGameName}.isPlaying`, true, true);
                 }
-            }, 5000); // 5 second delay
+            }
         }
     }
 

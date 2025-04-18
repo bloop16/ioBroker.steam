@@ -1,20 +1,20 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.2.3",
+    "version": "0.3.0",
     "news": {
-      "0.2.3": {
-        "en": "configurable player summary intervals; game news updates every 6h; recently played games; typo-tolerant game search; improved error handling",
-        "de": "konfigurierbare Spieler-Statusintervalle; Spielnachrichten alle 6h; kürzlich gespielte Spiele; tippfehlertolerante Spielsuche; verbesserte Fehlerbehandlung",
-        "ru": "настраиваемые интервалы сводки игрока; обновления игровых новостей каждые 6 часов; недавно сыгранные игры; поиск игр с исправлением опечаток; улучшенная обработка ошибок",
-        "pt": "intervalos configuráveis de resumo do jogador; atualizações de notícias de jogos a cada 6h; jogos jogados recentemente; pesquisa de jogos tolerante a erros de digitação; tratamento de erros aprimorado",
-        "nl": "configureerbare spelerssamenvatting-intervallen; spelnieuwsupdates elke 6 uur; recent gespeelde spellen; typfouttolerant spelzoeken; verbeterde foutafhandeling",
-        "fr": "intervalles configurables de résumé du joueur; mises à jour des actualités de jeux toutes les 6h; jeux récemment joués; recherche de jeux tolérante aux fautes de frappe; gestion améliorée des erreurs",
-        "it": "intervalli configurabili di riepilogo del giocatore; aggiornamenti delle notizie di gioco ogni 6 ore; giochi giocati di recente; ricerca di giochi tollerante ai refusi; gestione degli errori migliorata",
-        "es": "intervalos configurables de resumen del jugador; actualizaciones de noticias de juegos cada 6h; juegos jugados recientemente; búsqueda de juegos tolerante a errores tipográficos; manejo de errores mejorado",
-        "pl": "konfigurowalne interwały podsumowania gracza; aktualizacje wiadomości o grach co 6 godzin; ostatnio grane gry; wyszukiwanie gier tolerujące literówki; ulepszona obsługa błędów",
-        "uk": "налаштовувані інтервали зведення гравця; оновлення ігрових новин кожні 6 годин; нещодавно зіграні ігри; пошук ігор, стійкий до друкарських помилок; покращена обробка помилок",
-        "zh-cn": "可配置的玩家摘要间隔; 每6小时更新游戏新闻; 最近玩过的游戏; 容错游戏搜索; 改进的错误处理"
+      "0.3.0": {
+        "en": "configurable player summary intervals; game news updates every 6h; recently played games; typo-tolerant game search; improved error handling; auto-filled game data; import owned games; enhanced game information; fixed adapter termination; automatic game detection; optimized API usage",
+        "de": "konfigurierbare Spieler-Statusintervalle; Spielnachrichten alle 6h; kürzlich gespielte Spiele; tippfehlertolerante Spielsuche; verbesserte Fehlerbehandlung; automatisch ausgefüllte Spieldaten; Import eigener Spiele; erweiterte Spielinformationen; behobene Adapter-Terminierung; automatische Spielerkennung; optimierte API-Nutzung",
+        "ru": "настраиваемые интервалы сводки игрока; обновления игровых новостей каждые 6 часов; недавно сыгранные игры; поиск игр с исправлением опечаток; улучшенная обработка ошибок; автозаполнение данных игр; импорт приобретенных игр; расширенная информация об играх; исправление завершения адаптера; автоматическое обнаружение игр; оптимизированное использование API",
+        "pt": "intervalos configuráveis de resumo do jogador; atualizações de notícias de jogos a cada 6h; jogos jogados recentemente; pesquisa de jogos tolerante a erros de digitação; tratamento de erros aprimorado; dados de jogos preenchidos automaticamente; importar jogos próprios; informações aprimoradas de jogos; terminação do adaptador corrigida; detecção automática de jogos; uso otimizado da API",
+        "nl": "configureerbare spelerssamenvatting-intervallen; spelnieuwsupdates elke 6 uur; recent gespeelde spellen; typfouttolerant spelzoeken; verbeterde foutafhandeling; automatisch ingevulde spelgegevens; eigen spellen importeren; verbeterde spelinformatie; opgeloste adapter-beëindiging; automatische speldetectie; geoptimaliseerd API-gebruik",
+        "fr": "intervalles configurables de résumé du joueur; mises à jour des actualités de jeux toutes les 6h; jeux récemment joués; recherche de jeux tolérante aux fautes de frappe; gestion améliorée des erreurs; données de jeu remplies automatiquement; importation des jeux possédés; informations de jeu améliorées; résolution des problèmes de terminaison d'adaptateur; détection automatique des jeux; utilisation optimisée de l'API",
+        "it": "intervalli configurabili di riepilogo del giocatore; aggiornamenti delle notizie di gioco ogni 6 ore; giochi giocati di recente; ricerca di giochi tollerante ai refusi; gestione degli errori migliorata; dati di gioco compilati automaticamente; importazione dei giochi posseduti; informazioni di gioco migliorate; risoluzione del problema di terminazione dell'adattatore; rilevamento automatico dei giochi; utilizzo ottimizzato delle API",
+        "es": "intervalos configurables de resumen del jugador; actualizaciones de noticias de juegos cada 6h; juegos jugados recientemente; búsqueda de juegos tolerante a errores tipográficos; manejo de errores mejorado; datos de juegos autocompletados; importación de juegos en propiedad; información mejorada de juegos; solución a terminación del adaptador; detección automática de juegos; uso optimizado de API",
+        "pl": "konfigurowalne interwały podsumowania gracza; aktualizacje wiadomości o grach co 6 godzin; ostatnio grane gry; wyszukiwanie gier tolerujące literówki; ulepszona obsługa błędów; automatycznie uzupełniane dane gier; import posiadanych gier; rozszerzone informacje o grach; naprawione zakończenie adaptera; automatyczne wykrywanie gier; zoptymalizowane użycie API",
+        "uk": "налаштовувані інтервали зведення гравця; оновлення ігрових новин кожні 6 годин; нещодавно зіграні ігри; пошук ігор, стійкий до друкарських помилок; покращена обробка помилок; автоматично заповнені дані ігор; імпорт придбаних ігор; розширена інформація про ігри; виправлення завершення адаптера; автоматичне виявлення ігор; оптимізоване використання API",
+        "zh-cn": "可配置的玩家摘要间隔; 每6小时更新游戏新闻; 最近玩过的游戏; 容错游戏搜索; 改进的错误处理; 自动填充的游戏数据; 导入已拥有的游戏; 增强的游戏信息; 修复了适配器终止问题; 自动游戏检测; 优化的API使用"
       }
     },
     "titleLang": {

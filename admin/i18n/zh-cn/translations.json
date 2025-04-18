@@ -36,5 +36,14 @@
     "profileURLName": "配置文件URL",
     "steamID64Name": "Steam ID64",
     "Enable game suggestions": "启用游戏名称建议",
-    "Enable game suggestions help": "启用后，建议如果找不到游戏，则建议类似的游戏名称"
+    "Enable game suggestions help": "启用后，建议如果找不到游戏，则建议类似的游戏名称",
+    "Enable owned games (needs adapter restart)": "启用拥有的游戏（需要适配器重新启动）",
+    "Game Stats URL": "游戏统计URL",
+    "Has Community Stats": "有社区统计数据",
+    "Currently Playing": "目前正在玩",
+    "Playtime (2 weeks)": "游戏时间（2周）",
+    "Playtime (total)": "播放时间（总数）",
+    "Last Played": "上一次比赛",
+    "AppID": "苹果",
+    "Recently Played": "最近玩了"
 }
