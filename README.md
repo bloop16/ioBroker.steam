@@ -52,6 +52,10 @@ After installing and configuring the adapter, the Steam profile information, gam
 
 ## Changelog
 
+### 0.2.3 (2025-04-18)
+* (bloop16)
+    * Fix APIRequest
+
 ### 0.2.1 (2025-04-16)
 * (bloop16)
     * Fix APIRequest

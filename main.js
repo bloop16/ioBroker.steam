@@ -26,7 +26,7 @@ const TIMER_CONFIG = {
     MIN_PLAYER_SUMMARY_INTERVAL_SEC: 15, // 15 seconds
 
     // Cooldowns to prevent excessive API calls
-    RECENTLY_PLAYED_COOLDOWN_MS: 5000, // 5 seconds
+    RECENTLY_PLAYED_COOLDOWN_MS: 15 * 60 * 1000, // 15 minutes (match the interval)
     NEWS_FETCH_COOLDOWN_MS: 60 * 60 * 1000, // 1 hour
 
     // Initial intervals after startup to stagger requests
@@ -134,24 +134,53 @@ class Steam extends utils.Adapter {
         }
 
         try {
-            const steamID64 = await this.resolveSteamID(steamName);
-            if (!steamID64) {
-                this.log.error(this._('Could not resolve Steam ID.'));
-                this.setConnected(false);
-                return;
-            }
-            this.steamID64 = steamID64;
+            // Check if we already have a Steam ID stored
+            const storedSteamIdObj = await this.getStateAsync('steamID64');
+            const storedSteamNameObj = await this.getStateAsync('steamName');
 
-            this.log.info(this._('Resolved Steam ID for %s', steamName));
-            await this.createOrUpdateState('steamID64', steamID64, 'string', this._('Steam ID64'));
+            // Only resolve if we don't have a Steam ID or the Steam name changed
+            if (
+                !storedSteamIdObj ||
+                !storedSteamIdObj.val ||
+                !storedSteamNameObj ||
+                storedSteamNameObj.val !== steamName
+            ) {
+                this.log.info(this._('Need to resolve Steam ID for %s', steamName));
+                const steamID64 = await this.resolveSteamID(steamName);
+
+                if (!steamID64) {
+                    this.log.error(this._('Could not resolve Steam ID.'));
+                    this.setConnected(false);
+                    return;
+                }
+
+                this.steamID64 = steamID64;
+                await this.createOrUpdateState('steamID64', steamID64, 'string', this._('Steam ID64'));
+                await this.createOrUpdateState('steamName', steamName, 'string', this._('Steam Name'));
+                this.log.info(this._('Resolved Steam ID for %s: %s', steamName, steamID64));
+            } else {
+                // Use the stored Steam ID
+                this.steamID64 = storedSteamIdObj.val;
+                this.log.info(this._('Using stored Steam ID: %s', this.steamID64));
+            }
 
             await this.setupGames();
             await this.resetDailyRequestCount();
-            this.setConnected(true);
-            await this.fetchAndSetData(apiKey, steamID64);
 
-            // One explicit fetch is enough - this will be the only call
-            await this.fetchRecentlyPlayed();
+            // Fetch initial data - do this BEFORE setting up intervals
+            this.log.info('Fetching initial data after startup...');
+
+            try {
+                // Initial player summary fetch
+                await this.fetchAndSetData(this.config.apiKey, null);
+
+                // Initial recently played fetch
+                await this.fetchRecentlyPlayed();
+            } catch (err) {
+                this.log.error(`Error during initial data fetch: ${err}`);
+            }
+
+            this.setConnected(true);
 
             // Set startup complete after initial data fetch
             this._initialStartup = false;
@@ -181,7 +210,7 @@ class Steam extends utils.Adapter {
             setTimeout(() => {
                 this.recentlyPlayedInterval = setInterval(async () => {
                     try {
-                        this.log.debug('Interval triggered: Fetching recently played games');
+                        this.logApiDebug('recentlyPlayedInterval', 'Scheduled interval triggered');
                         await this.fetchRecentlyPlayed();
                     } catch (e) {
                         this.log.error(`Error in recentlyPlayed interval: ${e}`);
@@ -200,7 +229,7 @@ class Steam extends utils.Adapter {
                     (async () => {
                         try {
                             if (this.dailyRequestCount < 10000) {
-                                await this.fetchAndSetData(this.config.apiKey, this.steamID64);
+                                await this.fetchAndSetData(this.config.apiKey, null);
                             } else {
                                 this.log.warn(this._('Daily API request limit reached.'));
                             }
@@ -225,7 +254,12 @@ class Steam extends utils.Adapter {
         this.isFetchingPlayerSummary = true;
         try {
             if (this.dailyRequestCount < 8000) {
-                await this.getPlayerSummaries(apiKey, steamID64);
+                // Use the class-level steamID64 variable instead of fetching from state
+                if (!this.steamID64) {
+                    this.logApiError('fetchAndSetData', new Error('Steam ID not available in memory'));
+                    return;
+                }
+                await this.getPlayerSummaries(apiKey, this.steamID64);
                 this.dailyRequestCount++;
                 await this.setState('info.dailyRequestCount', this.dailyRequestCount, true);
             } else {
@@ -237,7 +271,7 @@ class Steam extends utils.Adapter {
                 const waitTime = Math.pow(2, retryCount || 0) * RATE_LIMIT_CONFIG.RETRY_BASE_TIME;
                 this.logApiWarning('fetchAndSetData', 'Rate limit exceeded. Retrying in %s minutes.', waitTime / 60000);
                 setTimeout(() => {
-                    this.fetchAndSetData(apiKey, steamID64, (retryCount || 0) + 1);
+                    this.fetchAndSetData(apiKey, null, (retryCount || 0) + 1);
                 }, waitTime);
             }
         } finally {
@@ -364,6 +398,7 @@ class Steam extends utils.Adapter {
                 // Update timestamp directly
                 this._lastApiCallTime.playerSummary = Date.now();
 
+                this.logApiDebug('getPlayerSummaries', 'Fetching player data using Steam ID from state');
                 const response = await this.apiRequest(API_ENDPOINTS.GET_PLAYER_SUMMARIES, {
                     key: apiKey,
                     format: 'json',
@@ -419,27 +454,6 @@ class Steam extends utils.Adapter {
 
             // Execute all state updates in parallel
             await Promise.all(updates);
-
-            // Skip the automatic fetch during initial startup since onReady() will do it explicitly
-            // Also respect the recentlyFetchedFlag to prevent frequent calls
-            if (!this.isShuttingDown && !this._recentlyFetchedFlag && !this._initialStartup) {
-                this._recentlyFetchedFlag = true;
-
-                // Use timeout to prevent blocking the current operation
-                setTimeout(() => {
-                    // Only proceed if we're not shutting down
-                    if (!this.isShuttingDown) {
-                        this.fetchRecentlyPlayed().catch(err => {
-                            this.logApiWarning('setPlayerState', 'Error fetching recently played: %s', err);
-                        });
-
-                        // Reset flag after cooldown
-                        setTimeout(() => {
-                            this._recentlyFetchedFlag = false;
-                        }, TIMER_CONFIG.RECENTLY_FETCHED_RESET_MS);
-                    }
-                }, 100);
-            }
         } catch (error) {
             this.log.error(this._('Error updating player state: %s', error));
         }
@@ -916,19 +930,42 @@ class Steam extends utils.Adapter {
             return false;
         }
 
+        // Check cooldown to prevent frequent API calls
+        const now = Date.now();
+        const lastCallTime = this._lastApiCallTime.recentlyPlayed || 0;
+        const timeSinceLastCall = now - lastCallTime;
+
+        // If called too soon after previous call, skip this request
+        if (timeSinceLastCall < TIMER_CONFIG.RECENTLY_PLAYED_COOLDOWN_MS) {
+            this.logApiDebug(
+                'fetchRecentlyPlayed',
+                `Skipping API call - cooldown active (${Math.round(timeSinceLastCall / 1000)}s elapsed, need ${Math.round(TIMER_CONFIG.RECENTLY_PLAYED_COOLDOWN_MS / 1000)}s)`,
+            );
+            return false;
+        }
+
         // Update timestamp directly
         this._lastApiCallTime.recentlyPlayed = Date.now();
 
         // Use a flag to prevent multiple concurrent fetches
         if (this._fetchingRecentlyPlayed) {
-            this.log.debug('Recently played games fetch already in progress, skipping');
+            this.logApiDebug('fetchRecentlyPlayed', 'Already in progress, skipping');
             return false;
         }
 
         this._fetchingRecentlyPlayed = true;
 
         try {
-            this.log.debug(`Fetching recently played games for Steam ID: ${this.steamID64}`);
+            // Use class-level steamID64 instead of fetching from state
+            if (!this.steamID64) {
+                this.logApiError('fetchRecentlyPlayed', new Error('Steam ID not available in memory'));
+                return false;
+            }
+
+            this.logApiDebug(
+                'fetchRecentlyPlayed',
+                `Fetching recently played games using steamID64: ${this.steamID64}`,
+            );
             const response = await this.apiRequest(API_ENDPOINTS.GET_RECENTLY_PLAYED, {
                 key: this.config.apiKey,
                 steamid: this.steamID64,
@@ -1215,6 +1252,20 @@ class Steam extends utils.Adapter {
             } else {
                 this.log.debug(this._('State %s deleted', id));
             }
+        }
+
+        // Check if playerState has changed and is acknowledged
+        if (id === `${this.namespace}.playerState` && state && state.ack) {
+            this.log.info(`Player state changed to ${state.val}, triggering recently played fetch`);
+
+            // Add a small delay to allow Steam to update their data
+            setTimeout(async () => {
+                try {
+                    await this.fetchRecentlyPlayed();
+                } catch (e) {
+                    this.log.error(`Error fetching recently played after state change: ${e}`);
+                }
+            }, 5000); // 5 second delay
         }
     }
 
