@@ -585,103 +585,59 @@ class Steam extends utils.Adapter {
                 native: {},
             });
 
-            let configUpdated = false;
-            const updatedGameList = [];
-
-            // First pass - collect all needed game data
+            // Skip updating configuration during adapter runtime
+            // Just create states and fetch initial data
             for (const game of this.config.gameList) {
                 if (!game || typeof game !== 'object') {
                     this.log.warn(this._('Invalid game entry in configuration: %s', JSON.stringify(game)));
                     continue;
                 }
 
-                const updatedGame = { ...game };
-
                 if (game.enabled) {
                     try {
-                        // Attempt to get game info without failing the overall process
+                        // Use existing data without updating configuration
                         let gameData = null;
+                        let gameId = null;
 
                         if (game.appId && !isNaN(parseInt(game.appId)) && parseInt(game.appId) > 0) {
-                            gameData = await this.findGame(parseInt(game.appId), true);
-                            if (gameData && (!game.gameName || game.gameName !== gameData.name)) {
-                                updatedGame.gameName = gameData.name;
-                                configUpdated = true;
-                                this.log.info(
-                                    this._('Updated game name to %s for AppID %s', gameData.name, game.appId),
-                                );
+                            // Use existing game name if available, or find it
+                            if (game.gameName) {
+                                gameData = { appId: parseInt(game.appId), name: game.gameName };
+                            } else {
+                                gameData = await this.findGame(parseInt(game.appId), true);
                             }
                         } else if (game.gameName) {
-                            gameData = await this.findGame(game.gameName, false);
-                            if (gameData && gameData.appId) {
-                                updatedGame.appId = gameData.appId;
-                                configUpdated = true;
-                                this.log.info(
-                                    this._(
-                                        'Updated game %s with AppID %s in configuration',
-                                        game.gameName,
-                                        gameData.appId,
-                                    ),
-                                );
+                            // Only lookup app ID if needed for API calls but don't update config
+                            if (!this._initialStartup) {
+                                // Skip intensive lookups on first run
+                                gameData = await this.findGame(game.gameName, false);
                             }
                         }
 
                         if (gameData) {
-                            const gameId = gameData.name.replace(/[^a-zA-Z0-9]/g, '_');
+                            gameId = gameData.name.replace(/[^a-zA-Z0-9]/g, '_');
                             await this.createGameStates(gameId, gameData.name);
                             await this.setState(`games.${gameId}.name`, gameData.name, true);
                             await this.setState(`games.${gameId}.isPlaying`, false, true);
-                            await this.setState(`games.${gameId}.gameAppId`, gameData.appId, true);
-
-                            // Get news in non-blocking way
                             if (gameData.appId) {
+                                await this.setState(`games.${gameId}.gameAppId`, gameData.appId, true);
+                            }
+
+                            // Get news in non-blocking way, but only if we have an app ID
+                            if (gameData.appId && !this._initialStartup) {
                                 this.fetchGameNewsNonBlocking(gameData.appId, gameId, gameData.name);
                             }
                         }
                     } catch (err) {
                         this.log.error(this._('Error processing game %s: %s', game.gameName || game.appId, err));
-                        // Continue with next game instead of failing the entire process
                     }
                 }
-
-                updatedGameList.push(updatedGame);
             }
 
-            // Modify the setupGames method where it saves the configuration
-            if (configUpdated) {
-                try {
-                    // Store locally for this instance without triggering restart
-                    this.config.gameList = updatedGameList;
-
-                    // Save for future restarts but don't trigger immediate restart
-                    await this.saveConfigWithoutRestart(updatedGameList);
-
-                    this.log.info(this._('Saved updated game configuration.'));
-                } catch (error) {
-                    this.log.error(this._('Error saving updated game configuration: %s', error));
-                }
-            }
+            // Never save configuration changes during runtime
+            this.log.info('Game setup completed without modifying configuration');
         } catch (error) {
             this.log.error(this._('Error during setupGames: %s', error));
-        }
-    }
-
-    async saveConfigWithoutRestart(updatedGameList) {
-        try {
-            // Get current config
-            const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
-            if (obj) {
-                // Update just the gameList without changing other configs
-                obj.native.gameList = updatedGameList;
-
-                // Use setForeignObject with the noUpdate flag to prevent immediate restart
-                await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, obj, { noUpdate: true });
-                return true;
-            }
-            return false;
-        } catch (err) {
-            this.log.error(`Failed to save configuration: ${err}`);
-            return false;
         }
     }
 
@@ -962,10 +918,7 @@ class Steam extends utils.Adapter {
                 return false;
             }
 
-            this.logApiDebug(
-                'fetchRecentlyPlayed',
-                `Fetching recently played games using steamID64: ${this.steamID64}`,
-            );
+            this.logApiDebug('fetchRecentlyPlayed', `Fetching player data using Steam ID from state`);
             const response = await this.apiRequest(API_ENDPOINTS.GET_RECENTLY_PLAYED, {
                 key: this.config.apiKey,
                 steamid: this.steamID64,
