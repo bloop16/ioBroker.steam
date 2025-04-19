@@ -1534,6 +1534,16 @@ class Steam extends utils.Adapter {
         }
     }
 
+    async onStateChange(id, state) {
+        if (state) {
+            // The state was changed
+            this.log.debug(`State ${id} changed: ${state.val} (ack = ${state.ack})`);
+        } else {
+            // The state was deleted
+            this.log.debug(`State ${id} deleted`);
+        }
+    }
+
     setConnected(connected) {
         this.setState('info.connection', connected, true);
     }
