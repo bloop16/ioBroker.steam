@@ -13,9 +13,7 @@ const API_ENDPOINTS = {
 };
 
 const RATE_LIMIT_CONFIG = {
-    RETRY_BASE_TIME: 60000, // 1 Minute als Basis-Wartezeit
-    MAX_RETRIES: 5, // Maximale Anzahl von Wiederholungsversuchen
-    REQUEST_TIMEOUT: 20000, // 20s Timeout für alle API-Anfragen
+    REQUEST_TIMEOUT: 20000, // 20s Timeout for all API requests
 };
 
 // Central timer configuration for all adapter intervals
@@ -52,7 +50,6 @@ class Steam extends utils.Adapter {
         });
 
         this._initialStartup = true;
-        this._recentlyFetchedFlag = false;
         this._fetchingRecentlyPlayed = false;
 
         this._activeRequests = 0;
@@ -81,6 +78,8 @@ class Steam extends utils.Adapter {
 
         this._lastActiveGameUpdate = 0;
         this._activeGameUpdateCooldown = 5 * 60 * 1000; // 5 minutes
+
+        this._lastRateLimitHit = 0;
 
         this.on('ready', this.onReady.bind(this));
         this.on('stateChange', this.onStateChange.bind(this));
@@ -338,9 +337,16 @@ class Steam extends utils.Adapter {
         }
     }
 
-    async fetchAndSetData(apiKey, steamID64, retryCount = 0) {
-        // Add timestamp check to prevent calls that are too close together
+    async fetchAndSetData(apiKey, _steamID64) {
+        // Check if we've hit rate limits recently
         const now = Date.now();
+        if (now - this._lastRateLimitHit < 5 * 60 * 1000) {
+            // 5 minutes
+            this.log.debug('Skipping request due to recent rate limiting');
+            return;
+        }
+
+        // Add timestamp check to prevent calls that are too close together
         const lastCallTime = this._lastApiCallTime.playerSummary || 0;
         const timeSinceLastCall = now - lastCallTime;
         const minInterval = 5000; // 5 seconds minimum between calls
@@ -366,15 +372,13 @@ class Steam extends utils.Adapter {
         // Set the flag and timestamp
         this.isFetchingPlayerSummary = true;
         this._fetchingPlayerSummaryStartTime = now;
-        this._lastApiCallTime.playerSummary = now;
+        this.updateApiTimestamp('playerSummary');
 
         try {
             if (this.dailyRequestCount < 8000) {
                 // Use the class-level steamID64 variable instead of fetching from state
                 if (!this.steamID64) {
                     this.logApiError('fetchAndSetData', new Error('Steam ID not available in memory'));
-                    this.isFetchingPlayerSummary = false;
-                    this._fetchingPlayerSummaryStartTime = null;
                     return;
                 }
 
@@ -395,37 +399,16 @@ class Steam extends utils.Adapter {
                 this.logApiWarning('fetchAndSetData', 'Daily API request limit reached');
             }
         } catch (error) {
-            this.logApiError('fetchAndSetData', error, 'Error fetching data');
-
             if (error.response && error.response.status === 429) {
-                // Only retry up to MAX_RETRIES times
-                if (retryCount >= RATE_LIMIT_CONFIG.MAX_RETRIES) {
-                    this.log.error(`Maximum retries (${RATE_LIMIT_CONFIG.MAX_RETRIES}) reached for API call.`);
-                    this.isFetchingPlayerSummary = false;
-                    this._fetchingPlayerSummaryStartTime = null;
-                    return;
-                }
-
-                const waitTime = Math.pow(2, retryCount || 0) * RATE_LIMIT_CONFIG.RETRY_BASE_TIME;
-                this.logApiWarning('fetchAndSetData', 'Rate limit exceeded. Retrying in %s minutes.', waitTime / 60000);
-
-                // Reset flag BEFORE scheduling retry
-                this.isFetchingPlayerSummary = false;
-                this._fetchingPlayerSummaryStartTime = null;
-
-                // Schedule a retry
-                setTimeout(() => {
-                    this.fetchAndSetData(apiKey, null, (retryCount || 0) + 1);
-                }, waitTime);
-
-                return; // Exit early
+                this._lastRateLimitHit = Date.now();
+                this.logApiWarning('fetchAndSetData', 'Rate limit exceeded. Skipping this request.');
+            } else {
+                this.logApiError('fetchAndSetData', error, 'Error fetching data. Skipping this request.');
             }
         } finally {
-            // Only reset flags if we didn't already reset them in the rate limiting case
-            if (this.isFetchingPlayerSummary) {
-                this.isFetchingPlayerSummary = false;
-                this._fetchingPlayerSummaryStartTime = null;
-            }
+            // Always reset the flag, with no conditions
+            this.isFetchingPlayerSummary = false;
+            this._fetchingPlayerSummaryStartTime = null;
         }
     }
 
@@ -447,7 +430,7 @@ class Steam extends utils.Adapter {
         }, msToMidnight);
     }
 
-    async apiRequest(endpoint, params = {}, retryCount = 0) {
+    async apiRequest(endpoint, params = {}, _retryCount = 0) {
         // Simple early return if shutting down
         if (this.isShuttingDown) {
             this.logApiDebug('apiRequest', 'Request skipped because adapter is shutting down');
@@ -466,59 +449,16 @@ class Steam extends utils.Adapter {
                 });
                 return response;
             } catch (error) {
-                // Handle Rate-Limit (429)
-                if (
-                    !this.isShuttingDown &&
-                    error.response &&
-                    error.response.status === 429 &&
-                    retryCount < RATE_LIMIT_CONFIG.MAX_RETRIES
-                ) {
-                    const waitTime = Math.pow(2, retryCount) * RATE_LIMIT_CONFIG.RETRY_BASE_TIME;
-                    this.logApiWarning('apiRequest', 'Rate limit exceeded. Retrying in %s minutes.', waitTime / 60000);
-
-                    const timeoutId = setTimeout(() => {
-                        const index = this._apiTimeouts.indexOf(timeoutId);
-                        if (index !== -1) {
-                            this._apiTimeouts.splice(index, 1);
-                        }
-                    }, waitTime);
-                    this._apiTimeouts.push(timeoutId);
-
-                    // Wait for timeout
-                    await new Promise(resolve => setTimeout(resolve, waitTime));
-
-                    // Check again before retrying
-                    if (this.isShuttingDown) {
-                        throw new Error('Adapter is shutting down');
-                    }
-
-                    return this.apiRequest(endpoint, params, retryCount + 1);
+                // Handle Rate-Limit (429) or any other error - skip instead of retry
+                if (error.response && error.response.status === 429) {
+                    this._lastRateLimitHit = Date.now();
+                    this.logApiWarning('apiRequest', 'Rate limit exceeded. Skipping this request.');
+                } else {
+                    this.logApiError('apiRequest', error, 'API request failed. Skipping this request.');
                 }
-
-                this.logApiError('apiRequest', error);
                 throw error;
             }
         });
-    }
-
-    async safeApiCall(apiFunction, errorReturnValue, errorMessage) {
-        if (this.isShuttingDown) {
-            this.logApiDebug('safeApiCall', 'API call skipped because adapter is shutting down');
-            return errorReturnValue;
-        }
-
-        try {
-            return await apiFunction();
-        } catch (error) {
-            // If we're shutting down during this call, just return without error
-            if (this.isShuttingDown) {
-                this.logApiDebug('safeApiCall', 'API call aborted due to shutdown');
-                return errorReturnValue;
-            }
-
-            this.log.error(this._(errorMessage, error));
-            return errorReturnValue;
-        }
     }
 
     async resolveSteamID(steamName) {
@@ -545,8 +485,7 @@ class Steam extends utils.Adapter {
     async getPlayerSummaries(apiKey, steamID) {
         return this.safeApiCall(
             async () => {
-                // Update timestamp directly
-                this._lastApiCallTime.playerSummary = Date.now();
+                this.updateApiTimestamp('playerSummary');
 
                 this.logApiDebug('getPlayerSummaries', 'Fetching player data using Steam ID from state');
                 const response = await this.apiRequest(API_ENDPOINTS.GET_PLAYER_SUMMARIES, {
@@ -834,7 +773,6 @@ class Steam extends utils.Adapter {
             const gameId = gameData.name.replace(/[^a-zA-Z0-9]/g, '_');
             await this.createGameStates(gameId, gameData.name);
             await this.setState(`games.${gameId}.name`, gameData.name, true);
-            await this.setState(`games.${gameId}.isPlaying`, true, true);
             await this.setState(`games.${gameId}.gameAppId`, gameData.appId, true);
             if (gameData.appId) {
                 const newsItems = await this.getNewsForGame(gameData.appId);
@@ -956,11 +894,7 @@ class Steam extends utils.Adapter {
 
     async fetchGameNewsNonBlocking(appId, gameId, gameName) {
         try {
-            // Update timestamp directly
-            if (!this._lastApiCallTime.newsForGame[appId]) {
-                this._lastApiCallTime.newsForGame[appId] = 0;
-            }
-            this._lastApiCallTime.newsForGame[appId] = Date.now();
+            this.updateApiTimestamp('newsForGame', appId);
 
             const newsItems = await this.getNewsForGame(appId);
             if (newsItems && newsItems.length > 0) {
@@ -1099,8 +1033,7 @@ class Steam extends utils.Adapter {
         try {
             this.logApiInfo('fetchSteamAppList', 'Fetching Steam app list...');
 
-            // Update timestamp to prevent multiple simultaneous requests
-            this._lastApiCallTime.appList = Date.now();
+            this.updateApiTimestamp('appList');
 
             const response = await this.apiRequest(API_ENDPOINTS.GET_APP_LIST, {
                 format: 'json',
@@ -1133,11 +1066,7 @@ class Steam extends utils.Adapter {
     }
 
     async getNewsForGame(appId, count, maxLength) {
-        // Update timestamp directly
-        if (!this._lastApiCallTime.newsForGame[appId]) {
-            this._lastApiCallTime.newsForGame[appId] = 0;
-        }
-        this._lastApiCallTime.newsForGame[appId] = Date.now();
+        this.updateApiTimestamp('newsForGame', appId);
 
         return this.safeApiCall(
             async () => {
@@ -1175,11 +1104,7 @@ class Steam extends utils.Adapter {
                 if (appIdState && typeof appIdState.val === 'number' && appIdState.val > 0) {
                     const appId = appIdState.val;
 
-                    // Update timestamp directly
-                    if (!this._lastApiCallTime.newsForGame[appId]) {
-                        this._lastApiCallTime.newsForGame[appId] = 0;
-                    }
-                    this._lastApiCallTime.newsForGame[appId] = Date.now();
+                    this.updateApiTimestamp('newsForGame', appId);
 
                     const newsItems = await this.getNewsForGame(appId);
                     if (newsItems && newsItems.length > 0) {
@@ -1213,8 +1138,7 @@ class Steam extends utils.Adapter {
             return false;
         }
 
-        // Update timestamp directly
-        this._lastApiCallTime.recentlyPlayed = Date.now();
+        this.updateApiTimestamp('recentlyPlayed');
 
         // Use a flag to prevent multiple concurrent fetches
         if (this._fetchingRecentlyPlayed) {
@@ -1512,6 +1436,15 @@ class Steam extends utils.Adapter {
             // Update the timestamp
             this._lastActiveGameUpdate = now;
 
+            // Before making a new API request, check if we have recent data
+            const lastCallTime = this._lastApiCallTime.recentlyPlayed || 0;
+            if (now - lastCallTime < 60000) {
+                // 1 minute
+                this.log.debug('Using cached recently played data');
+                // Use the cached data instead of making a new request
+                // Implement logic to use cached data
+            }
+
             // Make a direct API call for this specific game only
             this.log.info(`Updating active game data for ${currentGame} (${appId})`);
 
@@ -1533,9 +1466,6 @@ class Steam extends utils.Adapter {
                 const gameData = response.data.response.games.find(g => g.appid == appId);
 
                 if (gameData) {
-                    // Make sure to set isPlaying explicitly
-                    await this.setState(`games.${safeGameName}.isPlaying`, true, true);
-
                     // Update game data
                     await this.processOwnedGame(gameData);
 
@@ -1589,35 +1519,6 @@ class Steam extends utils.Adapter {
         } catch (e) {
             this.log.error(`Error during unload: ${e}`);
             callback();
-        }
-    }
-
-    async onStateChange(id, state) {
-        if (state) {
-            this.log.debug(`State ${id} changed: ${state.val} (ack = ${state.ack})`);
-        } else {
-            this.log.debug(`State ${id} deleted`);
-        }
-
-        // Simplified approach for handling game state changes
-        if (id === `${this.namespace}.currentGame` && state && state.ack) {
-            const currentGame = state.val;
-            const gameChannels = await this.getChannelsOfAsync('games');
-
-            // Reset all games to not playing
-            for (const channel of gameChannels) {
-                const gameId = channel._id.split('.').pop();
-                await this.setState(`games.${gameId}.isPlaying`, false, true);
-            }
-
-            // If there's a current game, find and set it to playing
-            if (currentGame) {
-                const safeGameName = currentGame.replace(/[^a-zA-Z0-9]/g, '_');
-                const gameObj = await this.getObjectAsync(`games.${safeGameName}`);
-                if (gameObj) {
-                    await this.setState(`games.${safeGameName}.isPlaying`, true, true);
-                }
-            }
         }
     }
 
@@ -1680,6 +1581,44 @@ class Steam extends utils.Adapter {
         }
 
         this.logWithFormat('error', method, detailedMessage);
+    }
+
+    async safeApiCall(func, defaultValue, errorMsg, ...errorArgs) {
+        try {
+            return await func();
+        } catch (error) {
+            // Add clear messaging about skipping the request
+            let skipMessage;
+
+            if (error.response && error.response.status === 429) {
+                this._lastRateLimitHit = Date.now();
+                skipMessage = 'Rate limit exceeded. Skipping this request.';
+            } else {
+                skipMessage = 'Request failed. Skipping this request.';
+            }
+
+            // Log the error with the skip message
+            if (errorMsg) {
+                this.log.error(this._(`${skipMessage} ${errorMsg}`, ...errorArgs, error));
+            } else {
+                this.log.error(`API call error: ${skipMessage} ${error}`);
+            }
+
+            return defaultValue;
+        }
+    }
+
+    updateApiTimestamp(apiType, id = null) {
+        const now = Date.now();
+        if (apiType === 'newsForGame' && id) {
+            if (!this._lastApiCallTime.newsForGame[id]) {
+                this._lastApiCallTime.newsForGame[id] = 0;
+            }
+            this._lastApiCallTime.newsForGame[id] = now;
+        } else {
+            this._lastApiCallTime[apiType] = now;
+        }
+        return now;
     }
 }
 if (require.main !== module) {
