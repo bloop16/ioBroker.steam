@@ -70,6 +70,8 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 ### WORKING ON
 * (bloop16) set IsPlaying in Game folder when currentGame and / or currentGameAppId is changing.
 
+
+
 ### 0.3.0 (2025-04-18)
 * (bloop16)
     * Added auto-completion for game names and AppIDs
