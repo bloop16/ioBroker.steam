@@ -45,5 +45,22 @@
     "Playtime (total)": "Playtime (totale)",
     "Last Played": "Ultimo giocato",
     "AppID": "Appid",
-    "Recently Played": "Recentemente giocato"
+    "Recently Played": "Recentemente giocato",
+    "Get owned games": "Ottieni giochi di proprietà",
+    "Get owned games help": "Recupera i giochi di proprietà di Steam e aggiorna la configurazione",
+    "No games configured to monitor or invalid game list format.": "Nessun gioco configurato per monitorare il formato dell'elenco di giochi non valido.",
+    "API Key and Steam Name required.": "Chiave API e nome a vapore richiesto.",
+    "Need to resolve Steam ID for %s": "Bisogno di risolvere l'ID Steam per %s",
+    "Could not resolve Steam ID.": "Impossibile risolvere l'ID Steam.",
+    "Daily request count reset.": "Ripristino del conteggio delle richieste giornaliere.",
+    "Daily API request limit reached.": "Limite di richiesta API giornaliero raggiunto.",
+    "Fetching owned games from Steam...": "Recuperare giochi di proprietà di Steam ...",
+    "Found %s owned games": "Trovato i giochi di proprietà di %s",
+    "Updated configuration with %s games": "Configurazione aggiornata con %S Games",
+    "Disabled \"Enable owned games\" option to prevent refetching": "Opzione \"Abilita giochi di proprietà\" disabilitato per prevenire il rimodellamento",
+    "Invalid or empty response from GetOwnedGames API": "Risposta non valida o vuota dall'API GEGEDEDGAMES",
+    "Error fetching owned games: %s": "Errore che recupera i giochi di proprietà: %s",
+    "Game setup completed": "Configurazione del gioco completata",
+    "Fetching initial data after startup...": "Recuperare i dati iniziali dopo l'avvio ...",
+    "GET OWNED GAMES": "Ottieni giochi di proprietà"
 }

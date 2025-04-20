@@ -45,5 +45,22 @@
     "Playtime (total)": "Playtime (total)",
     "Last Played": "Última jogada",
     "AppID": "Appid",
-    "Recently Played": "Recentemente jogado"
+    "Recently Played": "Recentemente jogado",
+    "Get owned games": "Obtenha jogos de propriedade",
+    "Get owned games help": "Fetches possuía jogos do Steam e atualiza a configuração",
+    "No games configured to monitor or invalid game list format.": "Nenhum jogo configurado para monitorar ou inválido para o formato da lista de jogos.",
+    "API Key and Steam Name required.": "Chave da API e nome do vapor necessário.",
+    "Need to resolve Steam ID for %s": "Precisa resolver o ID do Steam para %s",
+    "Could not resolve Steam ID.": "Não foi possível resolver o ID do vapor.",
+    "Daily request count reset.": "Redefinição da contagem de solicitações diárias.",
+    "Daily API request limit reached.": "O limite diário de solicitação da API alcançado.",
+    "Fetching owned games from Steam...": "Buscar jogos de propriedade do Steam ...",
+    "Found %s owned games": "Encontrou os jogos de propriedade de %s",
+    "Updated configuration with %s games": "Configuração atualizada com os jogos %s",
+    "Disabled \"Enable owned games\" option to prevent refetching": "Opção desativada \"Habilable Proide Games\" para evitar o reforma",
+    "Invalid or empty response from GetOwnedGames API": "Resposta inválida ou vazia da API de jogos de fuga",
+    "Error fetching owned games: %s": "Erro a busca de jogos de propriedade: %s",
+    "Game setup completed": "Configuração do jogo concluída",
+    "Fetching initial data after startup...": "Buscando dados iniciais após a inicialização ...",
+    "GET OWNED GAMES": "Obtenha jogos de propriedade"
 }

@@ -67,10 +67,13 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 
 ## Changelog
 
-### WORKING ON
-* (bloop16) set IsPlaying in Game folder when currentGame and / or currentGameAppId is changing.
-
-
+### 0.4.0 (2025-04-21)
+* (bloop16)
+    * Button "Get owned games" in admin UI now reliably triggers fetching 
+    * Improved error handling and logging for owned games import
+    * Removed unnecessary debug/info logs and startup messages
+    * Optimized interval and timer handling for all background tasks
+    * Improved translation coverage for all user-facing messages
 
 ### 0.3.0 (2025-04-18)
 * (bloop16)
@@ -80,9 +83,6 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
     * Fixed adapter termination issues
     * Added automatic game detection when player starts playing
     * Optimized API usage with reduced duplicate calls
-    * Added proper cooldowns between API requests
-    * Added game image URLs and additional statistics
-    * Fixed configuration issues with owned games
 
 ### 0.2.3 (2025-04-18)
 * (bloop16)

@@ -45,5 +45,22 @@
     "Playtime (total)": "Temps de jeu (total)",
     "Last Played": "Dernier joué",
     "AppID": "Appid",
-    "Recently Played": "Récemment joué"
+    "Recently Played": "Récemment joué",
+    "Get owned games": "Obtenez des jeux possédés",
+    "Get owned games help": "Répondance aux jeux possédés de Steam et met à jour la configuration",
+    "No games configured to monitor or invalid game list format.": "Pas de jeux configurés pour surveiller ou non valide le format de liste de jeux.",
+    "API Key and Steam Name required.": "Clé API et nom de vapeur requis.",
+    "Need to resolve Steam ID for %s": "Besoin de résoudre l'ID de vapeur pour% s",
+    "Could not resolve Steam ID.": "Impossible de résoudre l'ID de vapeur.",
+    "Daily request count reset.": "Réinitialisation quotidienne du nombre de demandes.",
+    "Daily API request limit reached.": "Limite quotidienne de la demande de l'API atteinte.",
+    "Fetching owned games from Steam...": "Récupérer les jeux possédés de Steam ...",
+    "Found %s owned games": "Found% s appartient les jeux",
+    "Updated configuration with %s games": "Configuration mise à jour avec% s les jeux",
+    "Disabled \"Enable owned games\" option to prevent refetching": "Option désactivée \"Activer les jeux possédés\" pour empêcher le refonte",
+    "Invalid or empty response from GetOwnedGames API": "Réponse non valide ou vide de l'API GetowndedGames",
+    "Error fetching owned games: %s": "Erreur récupérant les jeux possédés:% s",
+    "Game setup completed": "Configuration du jeu terminée",
+    "Fetching initial data after startup...": "Récupérer les données initiales après le démarrage ...",
+    "GET OWNED GAMES": "Obtenez des jeux possédés"
 }

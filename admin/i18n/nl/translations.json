@@ -45,5 +45,22 @@
     "Playtime (total)": "Speeltijd (totaal)",
     "Last Played": "Laatst gespeeld",
     "AppID": "Appid",
-    "Recently Played": "Onlangs gespeeld"
+    "Recently Played": "Onlangs gespeeld",
+    "Get owned games": "Krijg games in eigendom",
+    "Get owned games help": "Haalt games van stoom op en werkt de configuratie bij",
+    "No games configured to monitor or invalid game list format.": "Geen games geconfigureerd om te controleren of ongeldige gamelijstindeling.",
+    "API Key and Steam Name required.": "API -sleutel en stoomnaam vereist.",
+    "Need to resolve Steam ID for %s": "Moet Steam ID oplossen voor %s",
+    "Could not resolve Steam ID.": "Kon Steam ID niet oplossen.",
+    "Daily request count reset.": "Dagelijkse aanvraagtelling Reset.",
+    "Daily API request limit reached.": "Dagelijkse API -aanvraaglimiet bereikt.",
+    "Fetching owned games from Steam...": "Eigendomsspellen halen uit Steam ...",
+    "Found %s owned games": "Games van %S -eigendom gevonden",
+    "Updated configuration with %s games": "Bijgewerkte configuratie met %S -games",
+    "Disabled \"Enable owned games\" option to prevent refetching": "Uitgeschakeld \"Eigendom games\" -optie om refetching te voorkomen",
+    "Invalid or empty response from GetOwnedGames API": "Ongeldige of lege reactie van GetownDeDgames API",
+    "Error fetching owned games: %s": "Fout ophalen van eigendomspellen: %s",
+    "Game setup completed": "Spelopstelling voltooid",
+    "Fetching initial data after startup...": "Initiële gegevens ophalen na het opstarten ...",
+    "GET OWNED GAMES": "Krijg games in eigendom"
 }

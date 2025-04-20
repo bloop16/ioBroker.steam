@@ -45,5 +45,22 @@
     "Playtime (total)": "播放时间（总数）",
     "Last Played": "上一次比赛",
     "AppID": "苹果",
-    "Recently Played": "最近玩了"
+    "Recently Played": "最近玩了",
+    "Get owned games": "获得拥有的游戏",
+    "Get owned games help": "从Steam获取拥有的游戏并更新配置",
+    "No games configured to monitor or invalid game list format.": "没有配置用于监视或无效的游戏列表格式的游戏。",
+    "API Key and Steam Name required.": "需要API键和蒸汽名称。",
+    "Need to resolve Steam ID for %s": "需要解决％s的蒸汽ID",
+    "Could not resolve Steam ID.": "无法解析Steam ID。",
+    "Daily request count reset.": "每日请求计数重置。",
+    "Daily API request limit reached.": "达到每日API请求限制。",
+    "Fetching owned games from Steam...": "从Steam中获取拥有的游戏...",
+    "Found %s owned games": "找到％的游戏",
+    "Updated configuration with %s games": "使用％S游戏更新配置",
+    "Disabled \"Enable owned games\" option to prevent refetching": "禁用的“启用游戏”选项可防止恢复",
+    "Invalid or empty response from GetOwnedGames API": "GetownedGames API的无效或空的响应",
+    "Error fetching owned games: %s": "错误获取拥有的游戏：％s",
+    "Game setup completed": "游戏设置完成",
+    "Fetching initial data after startup...": "启动后获取初始数据...",
+    "GET OWNED GAMES": "获得拥有的游戏"
 }

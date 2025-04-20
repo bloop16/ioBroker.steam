@@ -45,5 +45,22 @@
     "Playtime (total)": "Гра (загалом)",
     "Last Played": "Останній грав",
     "AppID": "Аплікаційний",
-    "Recently Played": "Нещодавно зіграв"
+    "Recently Played": "Нещодавно зіграв",
+    "Get owned games": "Отримати власні ігри",
+    "Get owned games help": "Витягує ігри з Steam та оновлює конфігурацію",
+    "No games configured to monitor or invalid game list format.": "Немає ігор, налаштованих для моніторингу або недійсного формату списку ігор.",
+    "API Key and Steam Name required.": "Потрібно ключ API та ім'я пари.",
+    "Need to resolve Steam ID for %s": "Потрібно вирішити ідентифікатор пари на %s",
+    "Could not resolve Steam ID.": "Не міг вирішити ідентифікатор пари.",
+    "Daily request count reset.": "Щоденний кількість запитів Скидання.",
+    "Daily API request limit reached.": "Дозволений щоденний обмеження запиту API.",
+    "Fetching owned games from Steam...": "Отримання ігор, що належать від пари ...",
+    "Found %s owned games": "Знайдені і ігри, що належать %",
+    "Updated configuration with %s games": "Оновлена ​​конфігурація з іграми %S",
+    "Disabled \"Enable owned games\" option to prevent refetching": "Варіант \"Увімкнути ігри\", щоб запобігти переробці",
+    "Invalid or empty response from GetOwnedGames API": "Недійсна або порожня відповідь від API GetownedGames API",
+    "Error fetching owned games: %s": "Помилка отримання ігор, що належать: %s",
+    "Game setup completed": "Налаштування гри завершено",
+    "Fetching initial data after startup...": "Отримання початкових даних після запуску ...",
+    "GET OWNED GAMES": "Отримати власні ігри"
 }

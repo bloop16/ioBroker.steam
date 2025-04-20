@@ -45,5 +45,22 @@
     "Playtime (total)": "Время игры (всего)",
     "Last Played": "Последний раз играл",
     "AppID": "Аппдасир",
-    "Recently Played": "Недавно сыграл"
+    "Recently Played": "Недавно сыграл",
+    "Get owned games": "Получите игры",
+    "Get owned games help": "Выбрасывают игры из Steam и обновляют конфигурацию",
+    "No games configured to monitor or invalid game list format.": "Никакие игры, настроенные для мониторинга или неверного формата списка игр.",
+    "API Key and Steam Name required.": "API -ключ и имя пара требуются.",
+    "Need to resolve Steam ID for %s": "Необходимо разрешить Steam ID для %s",
+    "Could not resolve Steam ID.": "Не мог разрешить Steam ID.",
+    "Daily request count reset.": "Ежедневный сброс подсчета запросов.",
+    "Daily API request limit reached.": "Ежедневный лимит запроса API достигнут.",
+    "Fetching owned games from Steam...": "Привлечение собственных игр из Steam ...",
+    "Found %s owned games": "Найдены игры в собственности",
+    "Updated configuration with %s games": "Обновленная конфигурация с играми %s",
+    "Disabled \"Enable owned games\" option to prevent refetching": "Опция «Включить игры» отключено",
+    "Invalid or empty response from GetOwnedGames API": "Неверный или пустой ответ от API Getownedgames",
+    "Error fetching owned games: %s": "Ошибка извлечения собственно игр: %s",
+    "Game setup completed": "Настройка игры завершена",
+    "Fetching initial data after startup...": "Получение начальных данных после запуска ...",
+    "GET OWNED GAMES": "Получите игры"
 }

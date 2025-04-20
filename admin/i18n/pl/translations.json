@@ -45,5 +45,22 @@
     "Playtime (total)": "Playtime (ogółem)",
     "Last Played": "Ostatni gra",
     "AppID": "AppId",
-    "Recently Played": "Niedawno grał"
+    "Recently Played": "Niedawno grał",
+    "Get owned games": "Uzyskaj własne gry",
+    "Get owned games help": "Fetches należą do gier z Steam i aktualizuje konfigurację",
+    "No games configured to monitor or invalid game list format.": "Żadnych gier skonfigurowanych do monitorowania lub nieprawidłowego formatu listy gier.",
+    "API Key and Steam Name required.": "Wymagana nazwa API i nazwa Steam.",
+    "Need to resolve Steam ID for %s": "Musisz rozwiązać identyfikator parowy dla %s",
+    "Could not resolve Steam ID.": "Nie można rozwiązać identyfikatora parowego.",
+    "Daily request count reset.": "Codzienne resetowanie liczby żądań.",
+    "Daily API request limit reached.": "Osiągnął limit żądania dziennego API.",
+    "Fetching owned games from Steam...": "Pobieranie gier z Steam ...",
+    "Found %s owned games": "Znaleziono Gry należące do",
+    "Updated configuration with %s games": "Zaktualizowana konfiguracja z gier %S.",
+    "Disabled \"Enable owned games\" option to prevent refetching": "Wyłączona opcja „Włącz gier”, aby zapobiec ponownemu ponowne",
+    "Invalid or empty response from GetOwnedGames API": "Nieprawidłowa lub pusta odpowiedź od API GetowowedGames",
+    "Error fetching owned games: %s": "Pobieranie błędów gier własnych: %s",
+    "Game setup completed": "Ukończona konfiguracja gry",
+    "Fetching initial data after startup...": "Pobieranie początkowych danych po uruchomieniu ...",
+    "GET OWNED GAMES": "Uzyskaj własne gry"
 }
