@@ -188,19 +188,6 @@ class Steam extends utils.Adapter {
             await this.setupGames();
             await this.resetDailyRequestCount();
 
-            // Fetch initial data - do this BEFORE setting up intervals
-            this.log.info('Fetching initial data after startup...');
-
-            try {
-                // Initial player summary fetch
-                await this.fetchAndSetData(this.config.apiKey, null);
-
-                // Initial recently played fetch
-                await this.fetchRecentlyPlayed();
-            } catch (err) {
-                this.log.error(`Error during initial data fetch: ${err}`);
-            }
-
             this.setConnected(true);
 
             // Set startup complete after initial data fetch
@@ -308,15 +295,20 @@ class Steam extends utils.Adapter {
     }
 
     async onMessage(obj) {
-        if (obj.command === 'test') {
-            this.log.info(this._('Test message: %s', obj.message));
-            if (obj.callback) {
-                this.sendTo(obj.from, obj.callback, {
-                    result: this._('Test message received'),
-                    error: null,
-                });
+        if (typeof obj === 'object' && obj.command) {
+            this.log.info(`Received command: ${obj.command}`);
+
+            if (obj.command === 'getOwnedGames') {
+                this.log.info('getOwnedGames button was clicked: Starting to fetch owned games');
+                const result = await this.getOwnedGamesAndUpdateConfig();
+
+                if (obj.callback) {
+                    this.sendTo(obj.from, obj.command, { success: result }, obj.callback);
+                }
+                return true;
             }
         }
+        return false;
     }
 
     async onStateChange(id, state) {
@@ -500,6 +492,27 @@ class Steam extends utils.Adapter {
         }
     }
 
+    async updateCurrentGame(currentGameAppId) {
+        // Hole alle bekannten Spiele
+        const gameChannels = await this.getChannelsOfAsync('games');
+        if (!gameChannels) {
+            return;
+        }
+
+        // Setze alle Spiele auf isPlaying = false, außer das aktuelle
+        for (const channel of gameChannels) {
+            const gameId = channel._id.split('.').pop();
+            if (gameId !== String(currentGameAppId)) {
+                await this.setStateAsync(`games.${gameId}.isPlaying`, false, true);
+            }
+        }
+
+        // Setze das aktuelle Spiel auf isPlaying = true
+        if (currentGameAppId) {
+            await this.setStateAsync(`games.${currentGameAppId}.isPlaying`, true, true);
+        }
+    }
+
     setConnected(connected) {
         this.setState('info.connection', connected, true);
     }
@@ -586,13 +599,19 @@ class Steam extends utils.Adapter {
     async fetchAndSetData(apiKey, _steamID64) {
         const now = Date.now();
         const lastCallTime = this._lastApiCallTime.playerSummary || 0;
-        const timeSinceLastCall = now - lastCallTime;
-        const minInterval = 5000; // 5 seconds minimum between calls
+        const intervalSec = parseInt(String(this.config.playerSummaryIntervalSec), 10) || 60;
+        const minInterval = Math.max(intervalSec * 1000, 5000); // Use config or at least 5s
+        const tolerance = 1000; // 1 second tolerance
 
-        if (timeSinceLastCall < minInterval) {
-            this.logApiDebug('fetchAndSetData', `Call too frequent, minimum interval is ${minInterval}ms`);
+        if (now - lastCallTime < minInterval - tolerance) {
+            this.logApiDebug(
+                'fetchAndSetData',
+                `Skipped: Only ${now - lastCallTime}ms since last call (interval: ${minInterval}ms, tolerance: ${tolerance}ms)`,
+            );
             return;
         }
+
+        this._lastApiCallTime.playerSummary = now;
 
         // Check if we're already fetching and skip if so
         if (this.isFetchingPlayerSummary) {
@@ -610,7 +629,6 @@ class Steam extends utils.Adapter {
         // Set the flag and timestamp
         this.isFetchingPlayerSummary = true;
         this._fetchingPlayerSummaryStartTime = now;
-        this.updateApiTimestamp('playerSummary');
 
         try {
             if (this.dailyRequestCount < 8000) {
@@ -762,7 +780,7 @@ class Steam extends utils.Adapter {
      * Setup, create, and manage game information
      ****************************************************/
     async setupGames() {
-        if (!this.config.gameList || !Array.isArray(this.config.gameList)) {
+        if (!Array.isArray(this.config.gameList) || this.config.gameList.length === 0) {
             this.log.info(this._('No games configured to monitor or invalid game list format.'));
             return;
         }
@@ -861,8 +879,6 @@ class Steam extends utils.Adapter {
                     this.log.error(`Failed to save updated game configuration: ${err}`);
                 }
             }
-
-            this.log.info('Game setup completed');
         } catch (error) {
             this.log.error(this._('Error during setupGames: %s', error));
         }
@@ -1492,11 +1508,10 @@ class Steam extends utils.Adapter {
             ) {
                 const games = response.data.response.games;
 
-                // Process each game with the full data processing
+                // MODIFIED: Only process for recently played structure
+                // Don't automatically add to games folder
                 for (const game of games) {
-                    await this.processOwnedGame(game);
-
-                    // ADDED: Also process for recently played structure
+                    // Only process for recently played folder
                     await this.processRecentlyPlayedGame(game);
                 }
 
@@ -1763,15 +1778,17 @@ class Steam extends utils.Adapter {
                 return response;
             } catch (error) {
                 if (error.response && error.response.status === 429) {
+                    // Consolidated rate limit message with timestamp and details
                     this.logApiWarning(
                         'apiRequest',
-                        'Rate limit exceeded on %s API. Endpoint: %s. Parameters: %s',
+                        'Rate limit (429) on %s API at %s - Endpoint: %s',
                         apiName,
+                        new Date().toISOString(),
                         endpoint,
-                        JSON.stringify(params),
                     );
-                    // Log detailed info to help debug rate limiting issues
-                    this.log.warn(`Rate limit (429) on ${apiName} API - Timestamp: ${new Date().toISOString()}`);
+
+                    // Set a property on the error to signal it's a rate limit error
+                    error.isRateLimit = true;
                 } else {
                     this.logApiError('apiRequest', error, 'API request failed for %s. Skipping this request.', apiName);
                 }
@@ -1784,8 +1801,12 @@ class Steam extends utils.Adapter {
         try {
             return await func();
         } catch (error) {
-            let skipMessage;
+            // Skip additional logging if this is a rate limit error that was already logged
+            if (error.isRateLimit) {
+                return defaultValue;
+            }
 
+            let skipMessage;
             if (error.response && error.response.status === 429) {
                 skipMessage = 'Rate limit exceeded. Skipping this request.';
             } else {
