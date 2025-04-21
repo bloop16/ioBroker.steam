@@ -67,6 +67,10 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 
 ## Changelog
 
+### 0.4.1 (2025-04-21)
+* (bloop16)
+    * Added randomness API request vary +-5sec
+
 ### 0.4.0 (2025-04-21)
 * (bloop16)
     * Button "Get owned games" in admin UI now reliably triggers fetching 

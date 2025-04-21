@@ -1,9 +1,9 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "news": {
-      "0.4.0": {
+      "0.4.1": {
         "en": "The button 'Get owned games' in the admin UI now reliably triggers loading of purchased games; Interval and timer handling for all background tasks optimized",
         "de": "Der Button 'Eigene Spiele abrufen' im Admin-UI löst jetzt zuverlässig das Laden von gekauften Spielen aus; Intervall- und Timer-Handling für alle Hintergrundaufgaben optimiert",
         "ru": "Кнопка 'Получить свои игры' в админке теперь надёжно запускает загрузку купленных игр; Оптимизирована обработка интервалов и таймеров для всех фоновых задач",

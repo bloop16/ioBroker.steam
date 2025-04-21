@@ -36,6 +36,9 @@ const TIMER_CONFIG = {
     STARTUP_RECENTLY_PLAYED_DELAY_MS: 5000, // 5 seconds
     STARTUP_PLAYER_SUMMARY_DELAY_MS: 10000, // 10 seconds
 
+    // Add jitter settings
+    API_JITTER_MAX_MS: 5000, // ±5 seconds variability
+
     // Flag reset timing
     RECENTLY_FETCHED_RESET_MS: 30000, // 30 seconds
 
@@ -44,6 +47,9 @@ const TIMER_CONFIG = {
 
     // Force shutdown timeout in case of hanging requests
     FORCE_SHUTDOWN_TIMEOUT_MS: 2000, // 2 seconds
+
+    // Rate limit backoff
+    RATE_LIMIT_BACKOFF_MS: 120000, // 2 minutes additional delay after rate limit
 };
 
 /****************************************************
@@ -86,6 +92,7 @@ class Steam extends utils.Adapter {
 
         this._lastActiveGameUpdate = 0;
         this._activeGameUpdateCooldown = 5 * 60 * 1000; // 5 minutes
+        this._lastRateLimitTime = null; // Track last rate limit occurrence
 
         this.on('ready', this.onReady.bind(this));
         this.on('stateChange', this.onStateChange.bind(this));
@@ -227,14 +234,34 @@ class Steam extends utils.Adapter {
             }, TIMER_CONFIG.STARTUP_RECENTLY_PLAYED_DELAY_MS);
 
             // Player summary interval
-            let intervalSec = parseInt(String(this.config.playerSummaryIntervalSec), 10) || 60;
-            if (intervalSec < TIMER_CONFIG.MIN_PLAYER_SUMMARY_INTERVAL_SEC) {
-                intervalSec = TIMER_CONFIG.MIN_PLAYER_SUMMARY_INTERVAL_SEC;
-            }
-
             setTimeout(() => {
-                this.playerSummaryInterval = setInterval(() => {
-                    (async () => {
+                // Instead of setInterval, use a recursive setTimeout with jitter
+                const scheduleNextPlayerSummary = () => {
+                    // Calculate base interval in ms
+                    let intervalSec = parseInt(String(this.config.playerSummaryIntervalSec), 10) || 60;
+                    if (intervalSec < TIMER_CONFIG.MIN_PLAYER_SUMMARY_INTERVAL_SEC) {
+                        intervalSec = TIMER_CONFIG.MIN_PLAYER_SUMMARY_INTERVAL_SEC;
+                    }
+                    const baseIntervalMs = intervalSec * 1000;
+
+                    // Add random jitter (±5 seconds)
+                    const jitter =
+                        Math.floor(Math.random() * (TIMER_CONFIG.API_JITTER_MAX_MS * 2)) -
+                        TIMER_CONFIG.API_JITTER_MAX_MS;
+
+                    // Check if we need to apply backoff due to recent rate limit
+                    let backoffMs = 0;
+                    if (
+                        this._lastRateLimitTime &&
+                        Date.now() - this._lastRateLimitTime < TIMER_CONFIG.RATE_LIMIT_BACKOFF_MS
+                    ) {
+                        backoffMs = TIMER_CONFIG.RATE_LIMIT_BACKOFF_MS;
+                        this.log.info(`Applying rate limit backoff: +${backoffMs / 1000}s`);
+                    }
+
+                    const nextIntervalMs = baseIntervalMs + jitter + backoffMs;
+
+                    this.playerSummaryInterval = setTimeout(async () => {
                         try {
                             if (this.dailyRequestCount < 10000) {
                                 await this.fetchAndSetData(this.config.apiKey, null);
@@ -243,9 +270,21 @@ class Steam extends utils.Adapter {
                             }
                         } catch (e) {
                             this.log.error(e);
+                        } finally {
+                            // Schedule next run with jitter if adapter is still running
+                            if (!this.isShuttingDown) {
+                                scheduleNextPlayerSummary();
+                            }
                         }
-                    })();
-                }, intervalSec * 1000);
+                    }, nextIntervalMs);
+
+                    this.log.debug(
+                        `Next player summary in ${nextIntervalMs}ms (base: ${baseIntervalMs}ms, jitter: ${jitter}ms, backoff: ${backoffMs}ms)`,
+                    );
+                };
+
+                // Start the first scheduled run
+                scheduleNextPlayerSummary();
             }, TIMER_CONFIG.STARTUP_PLAYER_SUMMARY_DELAY_MS);
         } catch (error) {
             this._initialStartup = false; // Make sure to reset flag even on error
@@ -657,6 +696,7 @@ class Steam extends utils.Adapter {
         } catch (error) {
             if (error.response && error.response.status === 429) {
                 this.logApiWarning('fetchAndSetData', 'Rate limit exceeded. Skipping this request.');
+                this._lastRateLimitTime = Date.now(); // Update rate limit timestamp
             } else {
                 this.logApiError('fetchAndSetData', error, 'Error fetching data. Skipping this request.');
             }
@@ -1786,6 +1826,9 @@ class Steam extends utils.Adapter {
                         new Date().toISOString(),
                         endpoint,
                     );
+
+                    // Record the rate limit time to apply backoff
+                    this._lastRateLimitTime = Date.now();
 
                     // Set a property on the error to signal it's a rate limit error
                     error.isRateLimit = true;
