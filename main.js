@@ -92,6 +92,7 @@ class Steam extends utils.Adapter {
 
         this._lastActiveGameUpdate = 0;
         this._activeGameUpdateCooldown = 5 * 60 * 1000; // 5 minutes
+        this._consecutiveRateLimits = 0; // Add counter for consecutive rate limits
         this._lastRateLimitTime = null; // Track last rate limit occurrence
 
         this.on('ready', this.onReady.bind(this));
@@ -122,7 +123,10 @@ class Steam extends utils.Adapter {
 
         this._activeRequests++;
         try {
-            return await requestFunction();
+            const result = await requestFunction();
+            // Reset consecutive rate limit counter on successful request
+            this._consecutiveRateLimits = 0;
+            return result;
         } finally {
             this._activeRequests--;
             this._processQueue();
@@ -211,26 +215,47 @@ class Steam extends utils.Adapter {
                 clearInterval(this.playerSummaryInterval);
             }
 
-            // Stagger intervals to prevent overlapping calls
+            // Replace the news interval with recursive setTimeout
             setTimeout(() => {
-                this.newsInterval = setInterval(async () => {
-                    try {
-                        await this.updateAllGamesNews();
-                    } catch (e) {
-                        this.log.error(e);
-                    }
-                }, TIMER_CONFIG.NEWS_UPDATE_INTERVAL_MS);
+                const scheduleNextNewsUpdate = () => {
+                    this.newsInterval = setTimeout(async () => {
+                        try {
+                            await this.updateAllGamesNews();
+                        } catch (e) {
+                            this.log.error(e);
+                        } finally {
+                            // Schedule next run only after current one completes
+                            if (!this.isShuttingDown) {
+                                scheduleNextNewsUpdate();
+                            }
+                        }
+                    }, TIMER_CONFIG.NEWS_UPDATE_INTERVAL_MS);
+                };
+
+                // Start the first scheduled run
+                scheduleNextNewsUpdate();
             }, TIMER_CONFIG.STARTUP_NEWS_DELAY_MS);
 
+            // Replace the recently played interval with recursive setTimeout
             setTimeout(() => {
-                this.recentlyPlayedInterval = setInterval(async () => {
-                    try {
-                        this.logApiDebug('recentlyPlayedInterval', 'Scheduled interval triggered');
-                        await this.fetchRecentlyPlayed();
-                    } catch (e) {
-                        this.log.error(`Error in recentlyPlayed interval: ${e}`);
-                    }
-                }, TIMER_CONFIG.RECENTLY_PLAYED_INTERVAL_MS);
+                const scheduleNextRecentlyPlayed = () => {
+                    this.recentlyPlayedInterval = setTimeout(async () => {
+                        try {
+                            this.logApiDebug('recentlyPlayedInterval', 'Scheduled interval triggered');
+                            await this.fetchRecentlyPlayed();
+                        } catch (e) {
+                            this.log.error(`Error in recentlyPlayed interval: ${e}`);
+                        } finally {
+                            // Schedule next run only after current one completes
+                            if (!this.isShuttingDown) {
+                                scheduleNextRecentlyPlayed();
+                            }
+                        }
+                    }, TIMER_CONFIG.RECENTLY_PLAYED_INTERVAL_MS);
+                };
+
+                // Start the first scheduled run
+                scheduleNextRecentlyPlayed();
             }, TIMER_CONFIG.STARTUP_RECENTLY_PLAYED_DELAY_MS);
 
             // Player summary interval
@@ -306,12 +331,32 @@ class Steam extends utils.Adapter {
             });
             this._requestQueue = [];
 
-            // Wait for any active requests to finish (with timeout)
-            const shutdownTimeout = setTimeout(() => {
+            // Create a proper shutdown timeout that won't be immediately cleared
+            let forceShutdownTimer = setTimeout(() => {
                 this.log.warn('Force shutdown - some requests did not complete in time');
+                // Force completion
+                cleanupCompleted();
             }, TIMER_CONFIG.FORCE_SHUTDOWN_TIMEOUT_MS);
 
-            // Clear all intervals first
+            // Create a completion handler that ensures we only call callback once
+            let shutdownCompleted = false;
+            const cleanupCompleted = () => {
+                if (shutdownCompleted) {
+                    return;
+                }
+                shutdownCompleted = true;
+
+                // Clear the force shutdown timer if it still exists
+                if (forceShutdownTimer) {
+                    clearTimeout(forceShutdownTimer);
+                    forceShutdownTimer = null;
+                }
+
+                this.log.info('Shutdown complete');
+                callback();
+            };
+
+            // Clear ALL intervals and timeouts
             [
                 this.resetTimeout,
                 this.newsInterval,
@@ -321,12 +366,38 @@ class Steam extends utils.Adapter {
             ].forEach(timer => {
                 if (timer) {
                     clearTimeout(timer);
+                    clearInterval(timer); // Also clear as interval just to be safe
                 }
             });
 
-            clearTimeout(shutdownTimeout);
-            this.log.info('Shutdown complete');
-            callback();
+            // Clear any timers used for scheduling the next player summary
+            if (this.playerSummaryInterval) {
+                clearTimeout(this.playerSummaryInterval);
+            }
+
+            // Additionally check and clear any other timers that might exist
+            if (this._shutdownCheckTimer) {
+                clearTimeout(this._shutdownCheckTimer);
+            }
+
+            // Wait for active requests to finish with a timeout
+            if (this._activeRequests > 0) {
+                this.log.info(`Waiting for ${this._activeRequests} active requests to complete...`);
+
+                // Set up a check interval to see when requests are done
+                let checkTimer = setInterval(() => {
+                    if (this._activeRequests <= 0) {
+                        clearInterval(checkTimer);
+                        cleanupCompleted();
+                    }
+                }, 100);
+
+                // Add the check timer to our cleanup list
+                this._apiTimeouts.push(checkTimer);
+            } else {
+                // No active requests, complete immediately
+                cleanupCompleted();
+            }
         } catch (e) {
             this.log.error(`Error during unload: ${e}`);
             callback();
@@ -1818,19 +1889,34 @@ class Steam extends utils.Adapter {
                 return response;
             } catch (error) {
                 if (error.response && error.response.status === 429) {
-                    // Consolidated rate limit message with timestamp and details
-                    this.logApiWarning(
-                        'apiRequest',
-                        'Rate limit (429) on %s API at %s - Endpoint: %s',
-                        apiName,
-                        new Date().toISOString(),
-                        endpoint,
-                    );
+                    // Increment consecutive rate limit counter
+                    this._consecutiveRateLimits++;
+
+                    // Determine log level based on consecutive count
+                    if (this._consecutiveRateLimits >= 3) {
+                        // Log warning only after 3+ consecutive rate limits
+                        this.logApiWarning(
+                            'apiRequest',
+                            'Rate limit (429) on %s API at %s - Endpoint: %s (3+ consecutive occurrences)',
+                            apiName,
+                            new Date().toISOString(),
+                            endpoint,
+                        );
+                        this._consecutiveRateLimits = 0; // Reset counter after warning
+                    } else {
+                        // Otherwise just log an info message
+                        this.logApiInfo(
+                            'apiRequest',
+                            'Rate limit (429) on %s API at %s - Endpoint: %s (occurrence %d/3)',
+                            apiName,
+                            new Date().toISOString(),
+                            endpoint,
+                            this._consecutiveRateLimits,
+                        );
+                    }
 
                     // Record the rate limit time to apply backoff
                     this._lastRateLimitTime = Date.now();
-
-                    // Set a property on the error to signal it's a rate limit error
                     error.isRateLimit = true;
                 } else {
                     this.logApiError('apiRequest', error, 'API request failed for %s. Skipping this request.', apiName);

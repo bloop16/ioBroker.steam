@@ -67,6 +67,10 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 
 ## Changelog
 
+### 0.4.2 (2025-04-21)
+* (bloop16)
+    * Improved rate limit handling: only shows warnings after 3 consecutive rate limits
+
 ### 0.4.1 (2025-04-21)
 * (bloop16)
     * Added randomness API request vary +-5sec
