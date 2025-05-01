@@ -281,7 +281,7 @@ class Steam extends utils.Adapter {
                         Date.now() - this._lastRateLimitTime < TIMER_CONFIG.RATE_LIMIT_BACKOFF_MS
                     ) {
                         backoffMs = TIMER_CONFIG.RATE_LIMIT_BACKOFF_MS;
-                        this.log.info(`Applying rate limit backoff: +${backoffMs / 1000}s`);
+                        this.logApiDebug.info(`Applying rate limit backoff: +${backoffMs / 1000}s`);
                     }
 
                     const nextIntervalMs = baseIntervalMs + jitter + backoffMs;
@@ -1586,7 +1586,7 @@ class Steam extends utils.Adapter {
         }
 
         this.updateApiTimestamp('recentlyPlayed');
-        this.log.info('fetchRecentlyPlayed: Attempting to fetch recently played games');
+        this.logApiDebug.info('fetchRecentlyPlayed: Attempting to fetch recently played games');
 
         // Use a flag to prevent multiple concurrent fetches
         if (this._fetchingRecentlyPlayed) {
@@ -1897,7 +1897,7 @@ class Steam extends utils.Adapter {
                         // Log warning only after 3+ consecutive rate limits
                         this.logApiWarning(
                             'apiRequest',
-                            'Rate limit (429) on %s API at %s - Endpoint: %s (3+ consecutive occurrences)',
+                            'Rate limit (429) on %s API at %s - Endpoint: %s',
                             apiName,
                             new Date().toISOString(),
                             endpoint,
@@ -1907,7 +1907,7 @@ class Steam extends utils.Adapter {
                         // Otherwise just log an info message
                         this.logApiInfo(
                             'apiRequest',
-                            'Rate limit (429) on %s API at %s - Endpoint: %s (occurrence %d/3)',
+                            'Rate limit (429) on %s API at %s - Endpoint: %s',
                             apiName,
                             new Date().toISOString(),
                             endpoint,
