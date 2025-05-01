@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.4.3",
+    "version": "0.4.4",
     "news": {
       "0.4.2": {
         "en": "The button 'Get owned games' in the admin UI now reliably triggers loading of purchased games; Interval and timer handling for all background tasks optimized",
