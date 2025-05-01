@@ -67,6 +67,9 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 
 ## Changelog
 
+### 0.4.4 (2025-05-01)
+* (bloop16) changed view log message log levels, ready for latest
+
 ### 0.4.3 (2025-05-01)
 * (bloop16)
     * Update package.json: Upgrade Node.js engine requirement and dependencies
