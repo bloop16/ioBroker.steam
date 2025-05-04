@@ -1,6 +1,6 @@
 {
   "name": "iobroker.steam",
-  "version": "0.4.4", 
+  "version": "0.5.0", 
   "description": "Adapter to Support die Steam API",
   "author": {
     "name": "bloop16",
@@ -63,15 +63,15 @@
     "main.js"
   ],
   "scripts": {
-    "test:js": "mocha --config test/mocharc.custom.json \"{!(node_modules|test)/**/*.test.js,*.test.js,test/**/test!(PackageFiles|Startup).js}\"",
-    "test:package": "mocha test/package --exit",
-    "test:integration": "mocha test/integration --exit",
+    "test:js": "mocha --config test/mocharc.custom.json --require test/mocha.setup.js \"{!(node_modules|test)/**/*.test.js,*.test.js,test/**/test!(PackageFiles|Startup).js}\"",
+    "test:package": "mocha test/package.js --exit",
+    "test:startup": "mocha test/testStartup.js --exit",
     "test": "npm run test:js && npm run test:package",
     "check": "tsc --noEmit -p tsconfig.check.json",
     "lint": "eslint -c eslint.config.mjs .",
     "translate": "translate-adapter",
     "release": "release-script"
-  },
+},
   "bugs": {
     "url": "https://github.com/bloop16/ioBroker.steam/issues"
   },

@@ -1,20 +1,20 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.4.4",
+    "version": "0.5.0",
     "news": {
-      "0.4.2": {
-        "en": "The button 'Get owned games' in the admin UI now reliably triggers loading of purchased games; Interval and timer handling for all background tasks optimized",
-        "de": "Der Button 'Eigene Spiele abrufen' im Admin-UI löst jetzt zuverlässig das Laden von gekauften Spielen aus; Intervall- und Timer-Handling für alle Hintergrundaufgaben optimiert",
-        "ru": "Кнопка 'Получить свои игры' в админке теперь надёжно запускает загрузку купленных игр; Оптимизирована обработка интервалов и таймеров для всех фоновых задач",
-        "pt": "O botão 'Obter jogos próprios' na interface de administração agora aciona de forma confiável o carregamento dos jogos adquiridos; Manipulação de intervalos e temporizadores otimizada para todas as tarefas em segundo plano",
-        "nl": "De knop 'Eigen games ophalen' in de admin-UI start nu betrouwbaar het laden van gekochte spellen; Interval- en timerafhandeling voor alle achtergrondtaken geoptimaliseerd",
-        "fr": "Le bouton 'Obtenir les jeux possédés' dans l'interface d'administration déclenche désormais de manière fiable le chargement des jeux achetés ; Gestion optimisée des intervalles et des minuteries pour toutes les tâches en arrière-plan",
-        "it": "Il pulsante 'Ottieni giochi posseduti' nell'interfaccia di amministrazione ora avvia in modo affidabile il caricamento dei giochi acquistati; Gestione ottimizzata di intervalli e timer per tutte le attività in background",
-        "es": "El botón 'Obtener juegos propios' en la interfaz de administración ahora inicia de forma fiable la carga de los juegos comprados; Manejo optimizado de intervalos y temporizadores para todas las tareas en segundo plano",
-        "pl": "Przycisk 'Pobierz posiadane gry' w panelu administracyjnym teraz niezawodnie uruchamia ładowanie zakupionych gier; Ulepszona obsługa interwałów i timerów dla wszystkich zadań w tle",
-        "uk": "Кнопка 'Отримати власні ігри' в адмінці тепер надійно запускає завантаження придбаних ігор; Оптимізовано обробку інтервалів і таймерів для всіх фонових завдань",
-        "zh-cn": "管理界面中的“获取已拥有的游戏”按钮现在可以可靠地触发已购游戏的加载；所有后台任务的间隔和定时器处理已优化"
+      "0.5.0": {
+        "en": "Core Features: Player status, current game, monitored game details (news, playtime), owned games import, game suggestions, API rate limit handling. Fixes: State roles, timer handling, info object creation.",
+        "de": "Kernfunktionen: Spielerstatus, aktuelles Spiel, überwachte Spieldetails (News, Spielzeit), Import eigener Spiele, Spielvorschläge, API-Ratenlimit-Handling. Korrekturen: State-Rollen, Timer-Verwaltung, Info-Objekt-Erstellung.",
+        "ru": "Основные функции: Статус игрока, текущая игра,  отслеживаемые детали игр (новости, время игры), импорт собственных игр, предложения игр, обработка лимитов API. Исправления: Роли состояний, обработка таймеров, создание объекта info.",
+        "pt": "Recursos Principais: Status do jogador, jogo atual, detalhes de jogos monitorados (notícias, tempo de jogo), importação de jogos próprios, sugestões de jogos, gerenciamento de limite de taxa da API. Correções: Funções de estado, tratamento de temporizador, criação de objeto info.",
+        "nl": "Kernfuncties: Spelerstatus, huidig spel, gemonitorde speldetails (nieuws, speeltijd), import van eigen games, spelsuggesties, API rate limit-beheer. Fixes: State-rollen, timerbeheer, info-objectcreatie.",
+        "fr": "Fonctionnalités Clés : Statut du joueur, jeu actuel, détails des jeux surveillés (actualités, temps de jeu), importation des jeux possédés, suggestions de jeux, gestion des limites de taux API. Corrections : Rôles d'état, gestion des minuteurs, création de l'objet info.",
+        "it": "Funzionalità Principali: Stato giocatore, gioco attuale, dettagli giochi monitorati (notizie, tempo di gioco), importazione giochi posseduti, suggerimenti giochi, gestione limiti API. Correzioni: Ruoli stato, gestione timer, creazione oggetto info.",
+        "es": "Funciones Principales: Estado del jugador, juego actual, detalles de juegos monitoreados (noticias, tiempo de juego), importación de juegos propios, sugerencias de juegos, manejo de límite de tasa API. Correcciones: Roles de estado, manejo de temporizadores, creación de objeto info.",
+        "pl": "Główne Funkcje: Status gracza, aktualna gra, szczegóły monitorowanych gier (wiadomości, czas gry), import posiadanych gier, sugestie gier, obsługa limitów API. Poprawki: Role stanów, obsługa timerów, tworzenie obiektu info.",
+        "uk": "Основні функції: Статус гравця, поточна гра, деталі відстежуваних ігор (новини, час гри), імпорт власних ігор, пропозиції ігор, обробка лімітів API. Виправлення: Ролі станів, обробка таймерів, створення об'єкта info.",
+        "zh-cn": "核心功能：玩家状态、当前游戏监控的游戏详情（新闻、游戏时间）、导入拥有的游戏、游戏建议、API 速率限制处理。修复：状态角色、计时器处理、信息对象创建。"
       }
     },
     "titleLang": {
@@ -97,12 +97,20 @@
     "playerSummaryIntervalSec": 60,
     "enableGameSuggestions": true
   },
-  "objects": [],
-  "instanceObjects": [
+  "objects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
     {
       "_id": "info.connection",
       "type": "state",
       "common": {
+        "role": "indicator.connected",
         "name": {
           "en": "Device or Service connected",
           "de": "Gerät oder Dienst verbunden",
@@ -117,10 +125,31 @@
           "zh-cn": "设备或服务已连接"
         },
         "type": "boolean",
-        "role": "indicator.connected",
         "read": true,
         "write": false,
         "def": false
+      },
+      "native": {}
+    }
+  ],
+  "instanceObjects": [
+    {
+      "_id": "games",
+      "type": "folder",
+      "common": {
+        "name": {
+          "en": "Steam Games",
+          "de": "Steam-Spiele",
+          "ru": "Steam игры",
+          "pt": "Jogos Steam",
+          "nl": "Steam-spellen",
+          "fr": "Jeux Steam",
+          "it": "Giochi Steam",
+          "es": "Juegos de Steam",
+          "pl": "Gry Steam",
+          "uk": "Ігри Steam",
+          "zh-cn": "Steam 游戏"
+        }
       },
       "native": {}
     },
@@ -142,7 +171,7 @@
           "zh-cn": "玩家姓名"
         },
         "type": "string",
-        "role": "state",
+        "role": "text",
         "read": true,
         "write": false
       },
@@ -166,7 +195,7 @@
           "zh-cn": "个人资料网址"
         },
         "type": "string",
-        "role": "state",
+        "role": "text.url",
         "read": true,
         "write": false
       },
@@ -190,7 +219,7 @@
           "zh-cn": "头像网址"
         },
         "type": "string",
-        "role": "state",
+        "role": "url.avatar",
         "read": true,
         "write": false
       },
@@ -230,30 +259,6 @@
       "native": {}
     },
     {
-      "_id": "gameExtraInfo",
-      "type": "state",
-      "common": {
-        "name": {
-          "en": "Game Extra Info",
-          "de": "Zusätzliche Spielinformationen",
-          "ru": "Дополнительная информация об игре",
-          "pt": "Informações extras do jogo",
-          "nl": "Extra informatie over het spel",
-          "fr": "Informations supplémentaires sur le jeu",
-          "it": "Informazioni extra sul gioco",
-          "es": "Información adicional del juego",
-          "pl": "Dodatkowe informacje o grze",
-          "uk": "Додаткова інформація про гру",
-          "zh-cn": "游戏额外信息"
-        },
-        "type": "string",
-        "role": "state",
-        "read": true,
-        "write": false
-      },
-      "native": {}
-    },
-    {
       "_id": "info.dailyRequestCount",
       "type": "state",
       "common": {
@@ -271,7 +276,7 @@
           "zh-cn": "每日请求计数"
         },
         "type": "number",
-        "role": "value",
+        "role": "value.counter",
         "read": true,
         "write": false
       },
@@ -295,7 +300,7 @@
           "zh-cn": "Steam ID64"
         },
         "type": "string",
-        "role": "state",
+        "role": "text",
         "read": true,
         "write": false
       },
@@ -319,30 +324,10 @@
           "zh-cn": "每日请求计数重置"
         },
         "type": "string",
-        "role": "value.time",
+        "role": "text.date",
         "read": true,
         "write": false,
         "def": ""
-      },
-      "native": {}
-    },
-    {
-      "_id": "games",
-      "type": "folder",
-      "common": {
-        "name": {
-          "en": "Steam Games",
-          "de": "Steam-Spiele",
-          "ru": "Steam игры",
-          "pt": "Jogos Steam",
-          "nl": "Steam-spellen",
-          "fr": "Jeux Steam",
-          "it": "Giochi Steam",
-          "es": "Juegos de Steam",
-          "pl": "Gry Steam",
-          "uk": "Ігри Steam",
-          "zh-cn": "Steam 游戏"
-        }
       },
       "native": {}
     }

@@ -40,7 +40,7 @@
                     "default": 60,
                     "newLine": true,
                     "help": "Player summary interval (sec) help"
-                },               
+                },
                 "enableGameSuggestions": {
                     "type": "checkbox",
                     "label": "Enable game name suggestions",
@@ -50,7 +50,6 @@
                     "lg": 4,
                     "xl": 4,
                     "newLine": true
-                
                 }
             }
         },
@@ -71,6 +70,15 @@
                     "newLine": true,
                     "tooltip": "Load games owned by this Steam account"
                 },
+                "getOwnedGamesHint": {
+                    "type": "staticText",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 12,
+                    "lg": 12,
+                    "xl": 12,
+                    "text": "⚠️ Give the adapter some time! - Adapter restarts. <br> Then reload the page and activate the desired games."
+                },
                 "gameList": {
                     "type": "table",
                     "xs": 12,
@@ -86,8 +94,7 @@
                             "width": "70%",
                             "title": "Game Name",
                             "filter": true,
-                            "sort": true,
-                            "default": "Counter-Strike 2"
+                            "sort": true
                         },
                         {
                             "type": "number",
@@ -95,8 +102,7 @@
                             "width": "20%",
                             "title": "AppID",
                             "filter": true,
-                            "sort": true,
-                            "default": 0
+                            "sort": true
                         },
                         {
                             "type": "checkbox",
@@ -105,7 +111,7 @@
                             "title": "Enabled",
                             "filter": false,
                             "sort": false,
-                            "default": true
+                            "default": false
                         }
                     ]
                 }

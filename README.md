@@ -33,11 +33,6 @@ This adapter allows you to integrate information from the Steam API into your io
     *   **Enhanced Game Info:** Displays game icons, logos, community stats URLs, playtime statistics, and more.
     *   **Automatic Game Detection:** Automatically detects and creates states for games as they are played.
 
-*   **Recently Played Games:**
-    *   **Fetches recently played games** every 15 minutes (configurable in the code).
-    *   **recentlyPlayed** is also updated immediately whenever the `currentGame` changes.
-    *   **Playtime Statistics:** Tracks playtime for last 2 weeks and total playtime for each game.
-
 *   **API Request Management:**
     *   **GetPlayerSummaries:** Requests player summaries at a configurable interval (minimum 15 seconds, default 60 seconds).
     *   **Daily Request Count:** Monitors the number of GetPlayerSummaries API requests to avoid exceeding the limit of 10,000 requests per day.
@@ -61,11 +56,27 @@ After installing and configuring the adapter, the Steam profile information, gam
 The adapter creates several state folders:
 - **steam.0** - Contains general profile information and connection status
 - **steam.0.games** - Contains monitored games with their AppIDs, news, and statistics
-- **steam.0.recentlyPlayed** - Contains information about recently played games
 
 When a game is being played, its `isPlaying` state will be set to true, and all data for that game will be automatically updated.
 
 ## Changelog
+
+### 0.5.0 (2025-05-03)
+* (bloop16)
+    * Automatic detection and addition of newly played games to the monitored list (no adapter restart required)
+    * Full internationalization (i18n) for all log messages and UI texts
+    * Improved game lookup: supports AppID/name, fuzzy search, and suggestions for typos
+    * Import all owned Steam games with one click
+    * Enhanced management and updating of game states (icons, logos, stats, news)
+    * Optimized API request handling (rate limits, backoff, random intervals)
+    * Automatic creation and cleanup of objects/states
+    * Improved error handling and logging
+
+### 0.4.5 (2025-05-02)
+* (bloop16)
+    * Corrected state roles to align with ioBroker standards
+    * Replaced standard `setTimeout`/`setInterval` with adapter versions (`this.setTimeout`/`this.setInterval`) for better lifecycle management.
+    * Ensured the standard `info` device object is created in `io-package.json`.
 
 ### 0.4.4 (2025-05-01)
 * (bloop16) changed view log message log levels, ready for latest
