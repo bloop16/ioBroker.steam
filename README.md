@@ -61,7 +61,7 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 
 ## Changelog
 
-### 0.5.0 (2025-05-03)
+### 0.5.1 (2025-05-04)
 * (bloop16)
     * Automatic detection and addition of newly played games to the monitored list (no adapter restart required)
     * Full internationalization (i18n) for all log messages and UI texts

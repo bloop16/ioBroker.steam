@@ -1,9 +1,9 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "news": {
-      "0.5.0": {
+      "0.5.1": {
         "en": "Core Features: Player status, current game, monitored game details (news, playtime), owned games import, game suggestions, API rate limit handling. Fixes: State roles, timer handling, info object creation.",
         "de": "Kernfunktionen: Spielerstatus, aktuelles Spiel, überwachte Spieldetails (News, Spielzeit), Import eigener Spiele, Spielvorschläge, API-Ratenlimit-Handling. Korrekturen: State-Rollen, Timer-Verwaltung, Info-Objekt-Erstellung.",
         "ru": "Основные функции: Статус игрока, текущая игра,  отслеживаемые детали игр (новости, время игры), импорт собственных игр, предложения игр, обработка лимитов API. Исправления: Роли состояний, обработка таймеров, создание объекта info.",
