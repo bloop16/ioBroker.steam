@@ -110,7 +110,8 @@
     "playerSummaryIntervalSec": 60,
     "enableGameSuggestions": true
   },
-  "objects": [
+  "objects": [],
+  "instanceObjects": [
     {
       "_id": "info",
       "type": "channel",
@@ -124,28 +125,14 @@
       "type": "state",
       "common": {
         "role": "indicator.connected",
-        "name": {
-          "en": "Device or Service connected",
-          "de": "Gerät oder Dienst verbunden",
-          "ru": "Устройство или сервис подключен",
-          "pt": "Dispositivo ou serviço conectado",
-          "nl": "Apparaat of service verbonden",
-          "fr": "Appareil ou service connecté",
-          "it": "Dispositivo o servizio connesso",
-          "es": "Dispositivo o servicio conectado",
-          "pl": "Urządzenie lub usługa podłączona",
-          "uk": "Пристрій або сервіс підключено",
-          "zh-cn": "设备或服务已连接"
-        },
+        "name": "Connection status",
         "type": "boolean",
         "read": true,
         "write": false,
         "def": false
       },
       "native": {}
-    }
-  ],
-  "instanceObjects": [
+    },
     {
       "_id": "games",
       "type": "folder",

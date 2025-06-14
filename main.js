@@ -32,10 +32,7 @@ const TIMER_CONFIG = {
 async function ensureState(adapter, id, common, value) {
     await adapter.setObjectNotExistsAsync(id, { type: 'state', common, native: {} });
     if (value !== undefined) {
-        const oldState = await adapter.getStateAsync(id);
-        if (!oldState || oldState.val !== value) {
-            await adapter.setState(id, value, true);
-        }
+        await adapter.setStateChangedAsync(id, value, true); // nur schreiben, wenn geändert
     }
 }
 
@@ -149,6 +146,23 @@ class Steam extends utils.Adapter {
             this.log.error('Error during initialization:', error);
             this.setConnected(false);
         }
+
+        this.subscribeStates('currentGameAppId');
+        this.subscribeStates('currentGame');
+
+        // Im onReady oder beim Initialisieren:
+        await this.setObjectNotExistsAsync('games.isPlaying', {
+            type: 'state',
+            common: {
+                name: 'Any game is being played',
+                type: 'boolean',
+                role: 'indicator',
+                read: true,
+                write: false,
+                def: false,
+            },
+            native: {},
+        });
     }
 
     schedulePlayerSummary() {
@@ -294,6 +308,7 @@ class Steam extends utils.Adapter {
     }
 
     async onStateChange(id, state) {
+        this.log.debug(`[onStateChange] triggered for id: ${id}, state: ${JSON.stringify(state)}`);
         if (!state) {
             return;
         }
@@ -370,6 +385,13 @@ class Steam extends utils.Adapter {
                     await this.handleCurrentGameChange(state.val);
                 }
             }
+        }
+
+        // Im onStateChange oder wo du currentGame prüfst:
+        if (id === `${this.namespace}.currentGame`) {
+            const anyPlaying = !!(state?.val && String(state.val).trim() !== '');
+            // only set games.isPlaying – do NOT touch games.news
+            await this.setStateAsync('games.isPlaying', anyPlaying, true);
         }
     }
 
@@ -542,7 +564,7 @@ class Steam extends utils.Adapter {
         await ensureState(this, 'info.dailyRequestCount', {
             name: 'Daily API Request Count',
             type: 'number',
-            role: 'value.counter',
+            role: 'value',
             read: true,
             write: false,
             def: 0,
@@ -550,7 +572,7 @@ class Steam extends utils.Adapter {
         await ensureState(this, 'info.dailyRequestCountReset', {
             name: 'Daily API Request Count Reset Time',
             type: 'string',
-            role: 'text.date',
+            role: 'date',
             read: true,
             write: false,
             def: '',
@@ -572,7 +594,7 @@ class Steam extends utils.Adapter {
         await ensureState(this, 'avatar', {
             name: 'Avatar URL',
             type: 'string',
-            role: 'url.avatar',
+            role: 'url',
             read: true,
             write: false,
         });
@@ -601,9 +623,17 @@ class Steam extends utils.Adapter {
         await ensureState(this, 'currentGameAppId', {
             name: 'Current Game AppID',
             type: 'number',
-            role: 'value.number',
+            role: 'state',
             read: true,
             write: false,
+        });
+        await ensureState(this, 'games.isPlaying', {
+            name: 'Any game is being played',
+            type: 'boolean',
+            role: 'indicator',
+            read: true,
+            write: false,
+            def: false,
         });
     }
 
@@ -1234,7 +1264,7 @@ class Steam extends utils.Adapter {
         await ensureState(this, `games.${gameId}.isPlaying`, {
             name: 'Currently Playing',
             type: 'boolean',
-            role: 'switch.active',
+            role: 'switch',
             read: true,
             write: true,
             def: false,
@@ -1242,7 +1272,7 @@ class Steam extends utils.Adapter {
         await ensureState(this, `games.${gameId}.gameAppId`, {
             name: 'Game AppID',
             type: 'number',
-            role: 'value.number',
+            role: 'state',
             read: true,
             write: false,
         });
@@ -1285,7 +1315,7 @@ class Steam extends utils.Adapter {
         await ensureState(this, `games.${gameId}.playtime_2weeks`, {
             name: 'Playtime (2 weeks)',
             type: 'number',
-            role: 'value.number',
+            role: 'state',
             unit: 'min',
             read: true,
             write: false,
@@ -1293,7 +1323,7 @@ class Steam extends utils.Adapter {
         await ensureState(this, `games.${gameId}.playtime_forever`, {
             name: 'Playtime (total)',
             type: 'number',
-            role: 'value.number',
+            role: 'state',
             unit: 'min',
             read: true,
             write: false,
@@ -1301,14 +1331,14 @@ class Steam extends utils.Adapter {
         await ensureState(this, `games.${gameId}.icon_url`, {
             name: 'Game Icon URL',
             type: 'string',
-            role: 'url.icon',
+            role: 'text.url',
             read: true,
             write: false,
         });
         await ensureState(this, `games.${gameId}.logo_url`, {
             name: 'Game Logo URL',
             type: 'string',
-            role: 'url.logo',
+            role: 'text.url',
             read: true,
             write: false,
         });
@@ -1319,117 +1349,6 @@ class Steam extends utils.Adapter {
             read: true,
             write: false,
         });
-        await ensureState(this, `games.${gameId}.has_stats`, {
-            name: 'Has Community Stats',
-            type: 'boolean',
-            role: 'indicator',
-            read: true,
-            write: false,
-        });
-    }
-
-    async processOwnedGame(gameData) {
-        try {
-            const gameName = gameData.name || `Unknown Game (${gameData.appid})`;
-            const gameId = gameName.replace(/[^a-zA-Z0-9]/g, '_');
-
-            await this.createGameStates(gameId, gameName);
-
-            await ensureState(
-                this,
-                `games.${gameId}.name`,
-                { name: 'Game Name', type: 'string', role: 'state', read: true, write: false },
-                gameName,
-            );
-            await ensureState(
-                this,
-                `games.${gameId}.gameAppId`,
-                { name: 'Game AppID', type: 'number', role: 'state', read: true, write: false },
-                gameData.appid,
-            );
-
-            if (gameData.playtime_2weeks !== undefined) {
-                await ensureState(
-                    this,
-                    `games.${gameId}.playtime_2weeks`,
-                    { name: 'Playtime (2 weeks)', type: 'number', role: 'state', read: true, write: false },
-                    gameData.playtime_2weeks,
-                );
-            } else {
-                await ensureState(
-                    this,
-                    `games.${gameId}.playtime_2weeks`,
-                    { name: 'Playtime (2 weeks)', type: 'number', role: 'state', read: true, write: false },
-                    0,
-                );
-            }
-
-            if (gameData.playtime_forever !== undefined) {
-                await ensureState(
-                    this,
-                    `games.${gameId}.playtime_forever`,
-                    { name: 'Playtime (total)', type: 'number', role: 'state', read: true, write: false },
-                    gameData.playtime_forever,
-                );
-            }
-
-            if (gameData.img_icon_url) {
-                const iconUrl = `https://media.steampowered.com/steamcommunity/public/images/apps/${gameData.appid}/${gameData.img_icon_url}.jpg`;
-                await ensureState(
-                    this,
-                    `games.${gameId}.icon_url`,
-                    { name: 'Game Icon URL', type: 'string', role: 'state', read: true, write: false },
-                    iconUrl,
-                );
-            } else {
-                await ensureState(
-                    this,
-                    `games.${gameId}.icon_url`,
-                    { name: 'Game Icon URL', type: 'string', role: 'state', read: true, write: false },
-                    '',
-                );
-            }
-
-            if (gameData.img_logo_url) {
-                const logoUrl = `https://media.steampowered.com/steamcommunity/public/images/apps/${gameData.appid}/${gameData.img_logo_url}.jpg`;
-                await ensureState(
-                    this,
-                    `games.${gameId}.logo_url`,
-                    { name: 'Game Logo URL', type: 'string', role: 'state', read: true, write: false },
-                    logoUrl,
-                );
-            } else {
-                await ensureState(
-                    this,
-                    `games.${gameId}.logo_url`,
-                    { name: 'Game Logo URL', type: 'string', role: 'state', read: true, write: false },
-                    '',
-                );
-            }
-
-            if (gameData.has_community_visible_stats !== undefined) {
-                await ensureState(
-                    this,
-                    `games.${gameId}.has_stats`,
-                    { name: 'Has Community Stats', type: 'boolean', role: 'state', read: true, write: false },
-                    gameData.has_community_visible_stats,
-                );
-
-                if (gameData.has_community_visible_stats) {
-                    const statsUrl = `http://steamcommunity.com/profiles/${this.steamID64}/stats/${gameData.appid}`;
-                    await ensureState(
-                        this,
-                        `games.${gameId}.stats_url`,
-                        { name: 'Game Stats URL', type: 'string', role: 'state', read: true, write: false },
-                        statsUrl,
-                    );
-                }
-            }
-
-            this.log.debug(`Updated data for owned game: ${gameName}`);
-        } catch (error) {
-            this.log.warn(`Error processing owned game data for AppID ${gameData.appid}:`, error);
-        }
     }
 
     async addNewGame(gameData) {
