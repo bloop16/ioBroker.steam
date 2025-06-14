@@ -61,6 +61,10 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 
 ## Changelog
 
+### 0.5.2 (2025-06-14)
+* (bloop16)
+    * Fixed `onStateChange`to work correct with `currentGameAppId`
+
 ### 0.5.1 (2025-05-04)
 * (bloop16)
     * Automatic detection and addition of newly played games to the monitored list (no adapter restart required)
