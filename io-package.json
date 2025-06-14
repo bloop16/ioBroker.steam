@@ -4,6 +4,19 @@
     "version": "0.5.2",
     "news": {
       "0.5.2": {
+        "en": "    *Fixed `onStateChange`to work correct with `currentGameAppId`",
+        "de": "    *Korrigierte `onStateChange`, damit es korrekt mit `currentGameAppId` funktioniert",
+        "ru": "    *Исправлено `onStateChange`, чтобы корректно работать с `currentGameAppId`",
+        "pt": "    *Corrigido `onStateChange` para funcionar corretamente com `currentGameAppId`",
+        "nl": "    *Fix `onStateChange` om correct te werken met `currentGameAppId`",
+        "fr": "    *Correction de `onStateChange` pour fonctionner correctement avec `currentGameAppId`",
+        "it": "    *Corretto `onStateChange` per funzionare correttamente con `currentGameAppId`",
+        "es": "    *Corregido `onStateChange` para funcionar correctamente con `currentGameAppId`",
+        "pl": "    *Naprawiono `onStateChange`, aby działał poprawnie z `currentGameAppId`",
+        "uk": "    *Виправлено `onStateChange`, щоб працював коректно з `currentGameAppId`",
+        "zh-cn": "    *修复了 `onStateChange` 以正确处理 `currentGameAppId`" 
+      },
+      "0.5.1": {
         "en": "Core Features: Player status, current game, monitored game details (news, playtime), owned games import, game suggestions, API rate limit handling. Fixes: State roles, timer handling, info object creation.",
         "de": "Kernfunktionen: Spielerstatus, aktuelles Spiel, überwachte Spieldetails (News, Spielzeit), Import eigener Spiele, Spielvorschläge, API-Ratenlimit-Handling. Korrekturen: State-Rollen, Timer-Verwaltung, Info-Objekt-Erstellung.",
         "ru": "Основные функции: Статус игрока, текущая игра,  отслеживаемые детали игр (новости, время игры), импорт собственных игр, предложения игр, обработка лимитов API. Исправления: Роли состояний, обработка таймеров, создание объекта info.",
