@@ -219,7 +219,7 @@
           "zh-cn": "头像网址"
         },
         "type": "string",
-        "role": "url.avatar",
+        "role": "text.url",
         "read": true,
         "write": false
       },
@@ -243,7 +243,7 @@
           "zh-cn": "玩家状态"
         },
         "type": "number",
-        "role": "value.state",
+        "role": "state",
         "read": true,
         "write": false,
         "states": {
@@ -276,7 +276,7 @@
           "zh-cn": "每日请求计数"
         },
         "type": "number",
-        "role": "value.counter",
+        "role": "state",
         "read": true,
         "write": false
       },
@@ -324,7 +324,7 @@
           "zh-cn": "每日请求计数重置"
         },
         "type": "string",
-        "role": "text.date",
+        "role": "text",
         "read": true,
         "write": false,
         "def": ""
