@@ -1,8 +1,22 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "news": {
+      "0.5.3": {
+        "en": "     *fixed state roles., fixed io-package.json (`info.connention`), removed uneeded `getState`, added trigger to `onReady`for `onStateChange`",
+        "de": "     *Korrigierte State-Rollen, korrigierte io-package.json (`info.connention`), entfernte unnötiges `getState`, fügte Trigger zu `onReady` für `onStateChange` hinzu",
+        "ru": "     *Исправлены роли состояний, исправлен io-package.json (`info.connention`), удален ненужный `getState`, добавлен триггер к `onReady` для `onStateChange`",
+        "pt": "     *Corrigidas as funções de estado, corrigido io-package.json (`info.connention`), removido `getState` desnecessário, adicionado gatilho a `onReady` para `onStateChange`",
+        "nl": "     *State-rollen gecorrigeerd, io-package.json (`info.connention`) gecorrigeerd, onnodige `getState` verwijderd, trigger toegevoegd aan `onReady` voor `onStateChange`",
+        "fr": "     *Rôles d'état corrigés, io-package.json corrigé (`info.connention`), `getState` inutile supprimé, déclencheur ajouté à `onReady` pour `onStateChange`",
+        "it": "     *Ruoli di stato corretti, io-package.json corretto (`info.connention`), rimosso `getState` non necessario, aggiunto trigger a `onReady` per `onStateChange`",
+        "es": "     *Roles de estado corregidos, io-package.json corregido (`info.connention`), eliminado `getState` innecesario, añadido disparador a `onReady` para `onStateChange`",
+        "pl": "     *Naprawiono role stanów, poprawiono io-package.json (`info.connention`), usunięto niepotrzebne `getState`, dodano wyzwalacz do `onReady` dla `onStateChange`",
+        "uk": "     *Виправлено ролі станів, виправлено io-package.json (`info.connention`), видалено непотрібний `getState`, додано тригер до `onReady` для `onStateChange`",
+        "zh-cn": "     *修正了状态角色，修正了 io-package.json (`info.connention`)，删除了不必要的 `getState`，为 `onReady` 添加了触发器以支持 `onStateChange`"
+
+      },
       "0.5.2": {
         "en": "    *Fixed `onStateChange`to work correct with `currentGameAppId`",
         "de": "    *Korrigierte `onStateChange`, damit es korrekt mit `currentGameAppId` funktioniert",

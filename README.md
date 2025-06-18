@@ -61,6 +61,13 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 
 ## Changelog
 
+### 0.5.3 (2025-06-14)
+* (bloop16)
+    * fixed state roles.
+    * fixed io-package.json (`info.connention`)
+    * removed uneeded `getState`
+    * added trigger to `onReady`for `onStateChange`
+
 ### 0.5.2 (2025-06-14)
 * (bloop16)
     * Fixed `onStateChange`to work correct with `currentGameAppId`
