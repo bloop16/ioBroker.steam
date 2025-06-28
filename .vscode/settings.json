@@ -15,5 +15,6 @@
 			],
 			"url": "https://raw.githubusercontent.com/ioBroker/adapter-react-v5/main/schemas/jsonConfig.json"
 		}
-	]
+	],
+	"i18next.i18nPaths": "c:/Users/bloop/OneDrive/Dokumente/GitHub/ioBroker.steam/admin/i18n"
 }
