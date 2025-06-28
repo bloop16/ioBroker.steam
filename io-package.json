@@ -4,17 +4,17 @@
     "version": "0.5.4",
     "news": {
       "0.5.4": {
-        "en": "    pulled Version",
-        "de": "    Version gezogen",
-        "ru": "    версия вытянута",
-        "pt": "    versão puxada",
-        "nl": "    versie getrokken",
-        "fr": "    version tirée",
-        "it": "    versione estratta",
-        "es": "    versión extraída",
-        "pl": "    wersja pobrana",
-        "uk": "    версія витягнута",
-        "zh-cn": "    版本已提取"
+        "en": "    *pulled Version",
+        "de": "    *Version gezogen",
+        "ru": "    *версия вытянута",
+        "pt": "    *versão puxada",
+        "nl": "    *versie getrokken",
+        "fr": "    *version tirée",
+        "it": "    *versione estratta",
+        "es": "    *versión extraída",
+        "pl": "    *wersja pobrana",
+        "uk": "    *версія витягнута",
+        "zh-cn": "    *版本已提取"
       
             },
       "0.5.3": {
