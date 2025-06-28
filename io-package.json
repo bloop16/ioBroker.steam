@@ -1,22 +1,36 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.5.4",
+    "version": "0.5.5",
     "news": {
+            "0.5.5": {
+        "en": "    *release versio",
+        "de": "    *Release-Version",
+        "ru": "    *Релизная версия",
+        "pt": "    *Versão de lançamento",
+        "nl": "    *Release-versie",
+        "fr": "    *Version de publication",
+        "it": "    *Versione di rilascio",
+        "es": "    *Versión de lanzamiento",
+        "pl": "    *Wersja wydania",
+        "uk": "    *Релізна версія",
+        "zh-cn": "    *发布版本" 
+            },
+            
       "0.5.4": {
         "en": "    *pulled Version",
-        "de": "    *Version gezogen",
-        "ru": "    *версия вытянута",
-        "pt": "    *versão puxada",
-        "nl": "    *versie getrokken",
-        "fr": "    *version tirée",
-        "it": "    *versione estratta",
-        "es": "    *versión extraída",
-        "pl": "    *wersja pobrana",
-        "uk": "    *версія витягнута",
-        "zh-cn": "    *版本已提取"
-      
-            },
+        "de": "    *Zugriff auf die Version",
+        "ru": "    *Получена версия",
+        "pt": "    *Versão obtida",
+        "nl": "    *Versie opgehaald",
+        "fr": "    *Version récupérée",
+        "it": "    *Versione recuperata",
+        "es": "    *Versión obtenida",
+        "pl": "    *Pobrana wersja",
+        "uk": "    *Отримана версія",
+        "zh-cn": "    *获取版本"
+      },
+
       "0.5.3": {
         "en": "     *fixed state roles., fixed io-package.json (`info.connention`), removed uneeded `getState`, added trigger to `onReady`for `onStateChange`",
         "de": "     *Korrigierte State-Rollen, korrigierte io-package.json (`info.connention`), entfernte unnötiges `getState`, fügte Trigger zu `onReady` für `onStateChange` hinzu",
