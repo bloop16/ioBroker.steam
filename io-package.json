@@ -1,10 +1,10 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.5.4",
+    "version": "0.5.6",
     "news": {
-            "0.5.4": {
-        "en": "    *release versio",
+            "0.5.6": {
+        "en": "    *release version",
         "de": "    *Release-Version",
         "ru": "    *Релизная версия",
         "pt": "    *Versão de lançamento",
