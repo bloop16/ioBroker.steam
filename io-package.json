@@ -1,8 +1,22 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.5.3",
+    "version": "0.5.4",
     "news": {
+      "0.5.4": {
+        "en": "    pulled Version",
+        "de": "    Version gezogen",
+        "ru": "    версия вытянута",
+        "pt": "    versão puxada",
+        "nl": "    versie getrokken",
+        "fr": "    version tirée",
+        "it": "    versione estratta",
+        "es": "    versión extraída",
+        "pl": "    wersja pobrana",
+        "uk": "    версія витягнута",
+        "zh-cn": "    版本已提取"
+      
+            },
       "0.5.3": {
         "en": "     *fixed state roles., fixed io-package.json (`info.connention`), removed uneeded `getState`, added trigger to `onReady`for `onStateChange`",
         "de": "     *Korrigierte State-Rollen, korrigierte io-package.json (`info.connention`), entfernte unnötiges `getState`, fügte Trigger zu `onReady` für `onStateChange` hinzu",
@@ -109,7 +123,7 @@
         "admin": ">=7.4.10"
       }
     ],
-    "messagebox": true
+    "messagebox": true,
   },
   "protectedNative": [
     "apiKey"
