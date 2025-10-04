@@ -1,9 +1,22 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.5.6",
+    "version": "0.5.7",
     "news": {
-            "0.5.6": {
+      "0.5.7": {
+        "en": "    *Updated dependencies and fixed validation issues",
+        "de": "    *Abhängigkeiten aktualisiert und Validierungsprobleme behoben",
+        "ru": "    *Обновлены зависимости и исправлены проблемы валидации",
+        "pt": "    *Dependências atualizadas e problemas de validação corrigidos",
+        "nl": "    *Dependencies bijgewerkt en validatieproblemen opgelost",
+        "fr": "    *Dépendances mises à jour et problèmes de validation corrigés",
+        "it": "    *Dipendenze aggiornate e problemi di validazione risolti",
+        "es": "    *Dependencias actualizadas y problemas de validación corregidos",
+        "pl": "    *Zaktualizowano zależności i naprawiono problemy walidacji",
+        "uk": "    *Оновлено залежності та виправлено проблеми валідації",
+        "zh-cn": "    *更新了依赖项并修复了验证问题"
+      },
+      "0.5.6": {
         "en": "    *release version",
         "de": "    *Release-Version",
         "ru": "    *Релизная версия",
@@ -14,9 +27,8 @@
         "es": "    *Versión de lanzamiento",
         "pl": "    *Wersja wydania",
         "uk": "    *Релізна версія",
-        "zh-cn": "    *发布版本" 
-            },
-
+        "zh-cn": "    *发布版本"
+      },
       "0.5.3": {
         "en": "     *fixed state roles., fixed io-package.json (`info.connention`), removed uneeded `getState`, added trigger to `onReady`for `onStateChange`",
         "de": "     *Korrigierte State-Rollen, korrigierte io-package.json (`info.connention`), entfernte unnötiges `getState`, fügte Trigger zu `onReady` für `onStateChange` hinzu",
@@ -42,7 +54,7 @@
         "es": "    *Corregido `onStateChange` para funcionar correctamente con `currentGameAppId`",
         "pl": "    *Naprawiono `onStateChange`, aby działał poprawnie z `currentGameAppId`",
         "uk": "    *Виправлено `onStateChange`, щоб працював коректно з `currentGameAppId`",
-        "zh-cn": "    *修复了 `onStateChange` 以正确处理 `currentGameAppId`" 
+        "zh-cn": "    *修复了 `onStateChange` 以正确处理 `currentGameAppId`"
       },
       "0.5.1": {
         "en": "Core Features: Player status, current game, monitored game details (news, playtime), owned games import, game suggestions, API rate limit handling. Fixes: State roles, timer handling, info object creation.",
@@ -120,7 +132,7 @@
     ],
     "globalDependencies": [
       {
-        "admin": ">=7.4.10"
+        "admin": ">=7.6.17"
       }
     ],
     "messagebox": true
