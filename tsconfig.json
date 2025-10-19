@@ -23,21 +23,15 @@
 		"noImplicitAny": false,
 		// "noUnusedLocals": true,
 		// "noUnusedParameters": true,
-		"useUnknownInCatchVariables": false,
-
-		"target": "ES2019",
-		"module": "commonjs",
-		"outDir": "build",
-		"rootDir": "src",
-		"strict": true,
-		"esModuleInterop": true,
-		"skipLibCheck": true
+		"useUnknownInCatchVariables": false
 	},
 	"include": [
-		"src/**/*"
+		"**/*.js",
+		"**/*.d.ts"
 	],
 	"exclude": [
 		"node_modules/**",
+		"build/**",
 		"widgets/**"
 	]
 }
