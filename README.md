@@ -167,7 +167,7 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 ## License
 MIT License
 
-Copyright (c) 2025 bloop16 <bloop16@hotmail.com>
+Copyright (c) 2025-2026 bloop16 <bloop16@hotmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
