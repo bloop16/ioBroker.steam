@@ -61,7 +61,7 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 
 ## Changelog
 
-### 0.5.8 (2025-01-19)
+### 0.5.8 (2026-01-19)
 * (bloop16)
     * Repository checker compliance fully verified
     * All dependencies updated to latest stable versions
