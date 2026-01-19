@@ -146,9 +146,17 @@
   "native": {
     "steamName": "",
     "apiKey": "",
-    "gameList": [],
+    "gameList": [
+      {
+        "gameName": "",
+        "appId": 0,
+        "enabled": false
+      }
+    ],
     "playerSummaryIntervalSec": 60,
-    "enableGameSuggestions": true
+    "enableGameSuggestions": true,
+    "enableOwnedGames": false,
+    "availableGames": []
   },
   "objects": [],
   "instanceObjects": [

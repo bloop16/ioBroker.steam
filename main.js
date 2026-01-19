@@ -156,7 +156,7 @@ class Steam extends utils.Adapter {
                 await this.updateAllGamesNews();
             }
         } catch (error) {
-            this.log.error('Error during initialization:', error);
+            this.log.error(`Error during initialization: ${error}`);
             this.setConnected(false);
         }
 
@@ -168,7 +168,7 @@ class Steam extends utils.Adapter {
         if (this.playerSummaryInterval) {
             this.clearTimeout(this.playerSummaryInterval);
         }
-        let intervalSec = parseInt(this.config.playerSummaryIntervalSec, 10) || 60;
+        let intervalSec = parseInt(String(this.config.playerSummaryIntervalSec), 10) || 60;
         if (intervalSec < TIMER_CONFIG.MIN_PLAYER_SUMMARY_INTERVAL_SEC) {
             intervalSec = TIMER_CONFIG.MIN_PLAYER_SUMMARY_INTERVAL_SEC;
         }
@@ -244,7 +244,7 @@ class Steam extends utils.Adapter {
                 cleanupCompleted();
             }
         } catch (e) {
-            this.log.error('Error during unload:', e);
+            this.log.error(`Error during unload: ${e}`);
             if (forceShutdownTimer) {
                 clearTimeout(forceShutdownTimer);
             }
@@ -455,7 +455,7 @@ class Steam extends utils.Adapter {
         }
 
         const currGameState = await this.getStateAsync('currentGame');
-        const currentGame = currGameState?.val || '';
+        const currentGame = String(currGameState?.val || '');
         const isPlaying = appId > 0 || currentGame.trim() !== '';
         await this.setStateChangedAsync('games.isPlaying', isPlaying, true);
     }
@@ -495,7 +495,7 @@ class Steam extends utils.Adapter {
                         hasReset = true;
                     }
                 } catch (e) {
-                    this.log.error(`Error resetting game ${gameId}:`, e);
+                    this.log.error(`Error resetting game ${gameId}: ${e}`);
                 }
             }
 
@@ -536,7 +536,8 @@ class Steam extends utils.Adapter {
         }
 
         const appIdState = await this.getStateAsync('currentGameAppId');
-        const appId = appIdState?.val || 0;
+        const appIdVal = appIdState?.val;
+        const appId = typeof appIdVal === 'number' ? appIdVal : 0;
         const isPlaying = appId > 0 || (typeof currentGame === 'string' && currentGame.trim() !== '');
         await this.setStateChangedAsync('games.isPlaying', isPlaying, true);
     }
@@ -1174,17 +1175,18 @@ class Steam extends utils.Adapter {
                         let gameId = null;
                         let configNeedsUpdate = false;
 
-                        if (game.appId && !isNaN(parseInt(game.appId)) && parseInt(game.appId) > 0) {
+                        const appIdNum = typeof game.appId === 'number' ? game.appId : parseInt(String(game.appId));
+                        if (appIdNum && !isNaN(appIdNum) && appIdNum > 0) {
                             if (!game.gameName) {
                                 this.log.info(`Looking up game name for AppID ${game.appId}`);
-                                gameData = await this.findGame(parseInt(game.appId), true);
+                                gameData = await this.findGame(String(game.appId), true);
                                 if (gameData && gameData.name) {
                                     game.gameName = gameData.name;
                                     configNeedsUpdate = true;
                                     this.log.info(`Updated game name for AppID ${game.appId} to '${gameData.name}'`);
                                 }
                             } else {
-                                gameData = { appId: parseInt(game.appId), name: game.gameName };
+                                gameData = { appId: parseInt(String(game.appId)), name: game.gameName };
                             }
                         } else if (game.gameName) {
                             this.log.info(`Looking up AppID for game '${game.gameName}'`);
@@ -1415,7 +1417,7 @@ class Steam extends utils.Adapter {
             }
             this.log.debug(`Updated data for owned game: ${gameName}`);
         } catch (error) {
-            this.log.warn(`Error processing owned game data for AppID ${gameData.appid}:`, error);
+            this.log.warn(`Error processing owned game data for AppID ${gameData.appid}: ${error}`);
         }
     }
 
@@ -1866,9 +1868,9 @@ class Steam extends utils.Adapter {
                 errorArgs.forEach(arg => {
                     formattedErrorMsg = formattedErrorMsg.replace('%s', String(arg));
                 });
-                this.log.error(`${skipMessage} ${formattedErrorMsg}`, error);
+                this.log.error(`${skipMessage} ${formattedErrorMsg}: ${error}`);
             } else {
-                this.log.error(`API call error. ${skipMessage}`, error);
+                this.log.error(`API call error. ${skipMessage}: ${error}`);
             }
 
             return defaultValue;
@@ -1920,16 +1922,17 @@ class Steam extends utils.Adapter {
             details = `: ${error.message || unknownError}`;
         }
 
-        this.log.error(`[${method}] ${formattedBaseMessage}${details}`, error);
+        this.log.error(`[${method}] ${formattedBaseMessage}${details}: ${error}`);
     }
 
-    updateApiTimestamp(apiType, id = null) {
+    updateApiTimestamp(apiType, id) {
         const now = Date.now();
-        if (apiType === 'newsForGame' && id) {
-            if (!this._lastApiCallTime.newsForGame[id]) {
-                this._lastApiCallTime.newsForGame[id] = 0;
+        if (apiType === 'newsForGame' && id !== null && id !== undefined) {
+            const idStr = String(id);
+            if (!this._lastApiCallTime.newsForGame[idStr]) {
+                this._lastApiCallTime.newsForGame[idStr] = 0;
             }
-            this._lastApiCallTime.newsForGame[id] = now;
+            this._lastApiCallTime.newsForGame[idStr] = now;
         } else {
             this._lastApiCallTime[apiType] = now;
         }
