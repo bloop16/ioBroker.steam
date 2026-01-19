@@ -160,5 +160,5 @@
     "Unknown error": "Unknown error",
     "Applying rate limit backoff of %s seconds": "Applying rate limit backoff of %s seconds",
     "Next player summary scheduled in %sms (Base: %sms, Jitter: %sms, Backoff: %sms)": "Next player summary scheduled in %sms (Base: %sms, Jitter: %sms, Backoff: %sms)",
-    "getOwnedGamesHint": "⚠️ Give the adapter some time! - Restart<br>Then reload the page and activate the desired game."
+    "getOwnedGamesHint": "Give the adapter some time! - Restart<br>Then reload the page and activate the desired game."
 }
