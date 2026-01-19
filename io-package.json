@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.5.7",
+    "version": "0.5.8",
     "news": {
+      "0.5.8": {
+        "en": "    *Repository checker compliance verified, all dependencies updated, TypeScript errors fixed",
+        "de": "    *Repository Checker Konformität überprüft, alle Abhängigkeiten aktualisiert, TypeScript-Fehler behoben",
+        "ru": "    *Проверка соответствия репозиторию проверена, все зависимости обновлены, ошибки TypeScript исправлены",
+        "pt": "    *Conformidade do verificador de repositório verificada, todas as dependências atualizadas, erros de TypeScript corrigidos",
+        "nl": "    *Repository Checker conformiteit geverifieerd, alle afhankelijkheden bijgewerkt, TypeScript-fouten opgelost",
+        "fr": "    *Conformité du vérificateur de dépôt vérifiée, toutes les dépendances mises à jour, erreurs TypeScript corrigées",
+        "it": "    *Conformità del verificatore di repository verificata, tutte le dipendenze aggiornate, errori TypeScript corretti",
+        "es": "    *Conformidad del verificador de repositorio verificada, todas las dependencias actualizadas, errores de TypeScript corregidos",
+        "pl": "    *Zgodność narzędzia sprawdzającego repozytorium zweryfikowana, wszystkie zależności zaktualizowane, błędy TypeScript naprawione",
+        "uk": "    *Перевірено відповідність інструменту перевірки сховища, оновлено всі залежності, виправлено помилки TypeScript",
+        "zh-cn": "    *存储库检查器合规性已验证，所有依赖项已更新，TypeScript 错误已修复"
+      },
       "0.5.7": {
         "en": "    *Updated dependencies and fixed validation issues",
         "de": "    *Abhängigkeiten aktualisiert und Validierungsprobleme behoben",

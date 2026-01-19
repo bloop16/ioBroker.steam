@@ -61,6 +61,14 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 
 ## Changelog
 
+### 0.5.8 (2025-01-19)
+* (bloop16)
+    * Repository checker compliance fully verified
+    * All dependencies updated to latest stable versions
+    * TypeScript compilation errors fixed
+    * Configuration schema enhanced with proper type definitions
+    * Ready for stable repository inclusion
+
 ### 0.5.7 (2025-10-19)
 * (bloop16)
     * Migrated to NPM Trusted Publishing (removed classic token dependency)
