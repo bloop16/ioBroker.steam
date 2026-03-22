@@ -22,7 +22,7 @@
         "ru": "    *Обновлены зависимости и исправлены проблемы валидации",
         "pt": "    *Dependências atualizadas e problemas de validação corrigidos",
         "nl": "    *Dependencies bijgewerkt en validatieproblemen opgelost",
-        "fr": "    *Dépendances mises à jour et problèmes de validation corrigés",
+        "fr": "    *Dépendances mises à jour et problèmes de validação corrigés",
         "it": "    *Dipendenze aggiornate e problemi di validazione risolti",
         "es": "    *Dependencias actualizadas y problemas de validación corregidos",
         "pl": "    *Zaktualizowano zależności i naprawiono problemy walidacji",
@@ -54,7 +54,6 @@
         "pl": "     *Naprawiono role stanów, poprawiono io-package.json (`info.connention`), usunięto niepotrzebne `getState`, dodano wyzwalacz do `onReady` dla `onStateChange`",
         "uk": "     *Виправлено ролі станів, виправлено io-package.json (`info.connention`), видалено непотрібний `getState`, додано тригер до `onReady` для `onStateChange`",
         "zh-cn": "     *修正了状态角色，修正了 io-package.json (`info.connention`)，删除了不必要的 `getState`，为 `onReady` 添加了触发器以支持 `onStateChange`"
-
       },
       "0.5.2": {
         "en": "    *Fixed `onStateChange`to work correct with `currentGameAppId`",
@@ -145,7 +144,7 @@
     ],
     "globalDependencies": [
       {
-        "admin": ">=7.6.17"
+        "admin": ">=7.6.20"
       }
     ],
     "messagebox": true
