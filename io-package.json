@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.5.8",
+    "version": "0.5.9",
     "news": {
+      "0.5.9": {
+        "en": "CI workflow concurrency config added, obsolete dependabot workflow file removed",
+        "de": "CI-Workflow Concurrency-Konfiguration hinzugefügt, veraltete Dependabot-Workflow-Datei entfernt",
+        "ru": "Добавлена конфигурация параллелизма CI-workflow, удален устаревший файл workflow dependabot",
+        "pt": "Configuração de concorrência do workflow CI adicionada, arquivo de workflow dependabot obsoleto removido",
+        "nl": "CI-workflow concurrency configuratie toegevoegd, verouderd dependabot workflow bestand verwijderd",
+        "fr": "Configuration de concurrence du workflow CI ajoutée, fichier de workflow dependabot obsolète supprimé",
+        "it": "Aggiunta configurazione concorrenza workflow CI, rimosso file workflow dependabot obsoleto",
+        "es": "Configuración de concurrencia del workflow CI añadida, archivo de workflow dependabot obsoleto eliminado",
+        "pl": "Dodano konfigurację współbieżności workflow CI, usunięto przestarzały plik workflow dependabot",
+        "uk": "Додано конфігурацію паралелізму CI-workflow, видалено застарілий файл workflow dependabot",
+        "zh-cn": "添加了 CI workflow 并发配置，删除了过时的 dependabot workflow 文件"
+      },
       "0.5.8": {
         "en": "    *Repository checker compliance verified, all dependencies updated, TypeScript errors fixed",
         "de": "    *Repository Checker Konformität überprüft, alle Abhängigkeiten aktualisiert, TypeScript-Fehler behoben",
