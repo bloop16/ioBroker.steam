@@ -61,6 +61,9 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 
 ## Changelog
 
+### **WORK IN PROGRESS**
+- (copilot) Adapter requires node.js >= 22 now
+
 ### 0.5.9 (2026-03-22)
 * (bloop16)
     * Added concurrency configuration to CI workflow

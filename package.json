@@ -21,7 +21,7 @@
     "url": "https://github.com/bloop16/ioBroker.steam.git"
   },
   "engines": {
-    "node": ">= 20"
+    "node": ">= 22"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",
