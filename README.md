@@ -177,6 +177,8 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
     * Automatic reset of request counter  
     * Secure API key storage
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## License
 MIT License
 
