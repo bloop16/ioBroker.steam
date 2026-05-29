@@ -93,19 +93,6 @@
         "pl": "    *Naprawiono `onStateChange`, aby działał poprawnie z `currentGameAppId`",
         "uk": "    *Виправлено `onStateChange`, щоб працював коректно з `currentGameAppId`",
         "zh-cn": "    *修复了 `onStateChange` 以正确处理 `currentGameAppId`"
-      },
-      "0.5.1": {
-        "en": "Core Features: Player status, current game, monitored game details (news, playtime), owned games import, game suggestions, API rate limit handling. Fixes: State roles, timer handling, info object creation.",
-        "de": "Kernfunktionen: Spielerstatus, aktuelles Spiel, überwachte Spieldetails (News, Spielzeit), Import eigener Spiele, Spielvorschläge, API-Ratenlimit-Handling. Korrekturen: State-Rollen, Timer-Verwaltung, Info-Objekt-Erstellung.",
-        "ru": "Основные функции: Статус игрока, текущая игра,  отслеживаемые детали игр (новости, время игры), импорт собственных игр, предложения игр, обработка лимитов API. Исправления: Роли состояний, обработка таймеров, создание объекта info.",
-        "pt": "Recursos Principais: Status do jogador, jogo atual, detalhes de jogos monitorados (notícias, tempo de jogo), importação de jogos próprios, sugestões de jogos, gerenciamento de limite de taxa da API. Correções: Funções de estado, tratamento de temporizador, criação de objeto info.",
-        "nl": "Kernfuncties: Spelerstatus, huidig spel, gemonitorde speldetails (nieuws, speeltijd), import van eigen games, spelsuggesties, API rate limit-beheer. Fixes: State-rollen, timerbeheer, info-objectcreatie.",
-        "fr": "Fonctionnalités Clés : Statut du joueur, jeu actuel, détails des jeux surveillés (actualités, temps de jeu), importation des jeux possédés, suggestions de jeux, gestion des limites de taux API. Corrections : Rôles d'état, gestion des minuteurs, création de l'objet info.",
-        "it": "Funzionalità Principali: Stato giocatore, gioco attuale, dettagli giochi monitorati (notizie, tempo di gioco), importazione giochi posseduti, suggerimenti giochi, gestione limiti API. Correzioni: Ruoli stato, gestione timer, creazione oggetto info.",
-        "es": "Funciones Principales: Estado del jugador, juego actual, detalles de juegos monitoreados (noticias, tiempo de juego), importación de juegos propios, sugerencias de juegos, manejo de límite de tasa API. Correcciones: Roles de estado, manejo de temporizadores, creación de objeto info.",
-        "pl": "Główne Funkcje: Status gracza, aktualna gra, szczegóły monitorowanych gier (wiadomości, czas gry), import posiadanych gier, sugestie gier, obsługa limitów API. Poprawki: Role stanów, obsługa timerów, tworzenie obiektu info.",
-        "uk": "Основні функції: Статус гравця, поточна гра, деталі відстежуваних ігор (новини, час гри), імпорт власних ігор, пропозиції ігор, обробка лімітів API. Виправлення: Ролі станів, обробка таймерів, створення об'єкта info.",
-        "zh-cn": "核心功能：玩家状态、当前游戏监控的游戏详情（新闻、游戏时间）、导入拥有的游戏、游戏建议、API 速率限制处理。修复：状态角色、计时器处理、信息对象创建。"
       }
     },
     "titleLang": {
@@ -332,15 +319,7 @@
         "role": "state",
         "read": true,
         "write": false,
-        "states": {
-          "0": "Offline",
-          "1": "Online",
-          "2": "Busy",
-          "3": "Away",
-          "4": "Snooze",
-          "5": "Looking to Trade",
-          "6": "Looking to Play"
-        }
+        "states": "0:Offline;1:Online;2:Busy;3:Away;4:Snooze;5:Looking to Trade;6:Looking to Play"
       },
       "native": {}
     },
