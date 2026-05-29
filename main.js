@@ -5,10 +5,6 @@
 const utils = require('@iobroker/adapter-core');
 const axios = require('axios');
 
-// eslint-disable-next-line jsdoc/check-tag-names
-/** @typedef {import('@iobroker/types/build/types').AdapterClass} IoBrokerAdapterClass */
-// eslint-disable-next-line jsdoc/check-tag-names
-/** @type {new (...args: any[]) => IoBrokerAdapterClass} */
 const AdapterBase = utils.Adapter;
 
 const API_BASE_URL = 'https://api.steampowered.com';

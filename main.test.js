@@ -3,11 +3,93 @@
 /// <reference types="node" />
 /// <reference types="mocha" />
 
+const assert = require("node:assert/strict");
 const { EventEmitter } = require("events");
-const { expect } = require("chai");
 const { afterEach, describe, it } = require("mocha");
-const sinon = require("sinon");
 const proxyquire = require("proxyquire").noCallThru();
+
+/** @type {(() => void)[]} */
+const restoreStack = [];
+
+/**
+ * @typedef {((...args: unknown[]) => unknown) & {
+ *  calls: unknown[][],
+ *  called: boolean,
+ *  calledOnce: boolean,
+ *  firstCall: { args: unknown[] } | undefined,
+ *  calledWithExactly: (...expected: unknown[]) => boolean,
+ *  calledOnceWithExactly: (...expected: unknown[]) => boolean,
+ *  resolves: (value?: unknown) => SpyFunction,
+ * }} SpyFunction
+ */
+
+function argsExactlyMatch(actual, expected) {
+	if (actual.length !== expected.length) {
+		return false;
+	}
+	return actual.every((value, index) => Object.is(value, expected[index]));
+}
+
+/**
+ * @param {(...args: unknown[]) => unknown} [implementation]
+ * @returns {SpyFunction}
+ */
+function createSpy(implementation = () => undefined) {
+	/** @type {unknown[][]} */
+	const calls = [];
+	const spy = /** @type {SpyFunction} */ ((...args) => {
+		calls.push(args);
+		return implementation(...args);
+	});
+
+	spy.calls = calls;
+	Object.defineProperty(spy, "called", {
+		get() {
+			return calls.length > 0;
+		},
+	});
+	Object.defineProperty(spy, "calledOnce", {
+		get() {
+			return calls.length === 1;
+		},
+	});
+	Object.defineProperty(spy, "firstCall", {
+		get() {
+			if (!calls.length) {
+				return undefined;
+			}
+			return { args: calls[0] };
+		},
+	});
+
+	spy.calledWithExactly = (...expected) => calls.some((callArgs) => argsExactlyMatch(callArgs, expected));
+	spy.calledOnceWithExactly = (...expected) => calls.length === 1 && argsExactlyMatch(calls[0], expected);
+	spy.resolves = (value) => {
+		implementation = () => Promise.resolve(value);
+		return spy;
+	};
+
+	return spy;
+}
+
+function stubMethod(object, methodName) {
+	const original = object[methodName];
+	const stub = createSpy();
+	object[methodName] = stub;
+	restoreStack.push(() => {
+		object[methodName] = original;
+	});
+	return stub;
+}
+
+function restoreAllStubs() {
+	while (restoreStack.length) {
+		const restore = restoreStack.pop();
+		if (restore) {
+			restore();
+		}
+	}
+}
 
 class FakeAdapter extends EventEmitter {
 	constructor(options = {}) {
@@ -16,10 +98,10 @@ class FakeAdapter extends EventEmitter {
 		this.namespace = `${this.name}.0`;
 		this.config = options.config || {};
 		this.log = {
-			error: sinon.spy(),
-			warn: sinon.spy(),
-			info: sinon.spy(),
-			debug: sinon.spy(),
+			error: createSpy(),
+			warn: createSpy(),
+			info: createSpy(),
+			debug: createSpy(),
 		};
 	}
 
@@ -53,12 +135,13 @@ class FakeAdapter extends EventEmitter {
 }
 
 function createAdapter(config = {}) {
+	const axiosGetStub = createSpy();
 	const adapterFactory = proxyquire("./main", {
 		"@iobroker/adapter-core": {
 			Adapter: FakeAdapter,
 		},
 		axios: {
-			get: sinon.stub(),
+			get: axiosGetStub,
 		},
 	});
 
@@ -67,25 +150,25 @@ function createAdapter(config = {}) {
 
 describe("Steam adapter onboarding", () => {
 	afterEach(() => {
-		sinon.restore();
+		restoreAllStubs();
 	});
 
 	it("logs actionable guidance when required credentials are missing", async () => {
 		const adapter = createAdapter({ apiKey: "", steamName: "" });
-		sinon.stub(adapter, "checkAndCreateStates").resolves();
-		const setConnectedStub = sinon.stub(adapter, "setConnected");
+		stubMethod(adapter, "checkAndCreateStates").resolves();
+		const setConnectedStub = stubMethod(adapter, "setConnected");
 
 		await adapter.onReady();
 
-		expect(setConnectedStub.calledOnceWithExactly(false)).to.equal(true);
-		expect(adapter.log.error.calledOnce).to.equal(true);
-		expect(adapter.log.error.firstCall.args[0]).to.include("Configuration incomplete");
-		expect(adapter.log.error.firstCall.args[0]).to.include("Steam API Key");
+		assert.equal(setConnectedStub.calledOnceWithExactly(false), true);
+		assert.equal(adapter.log.error.calledOnce, true);
+		assert.equal(adapter.log.error.firstCall.args[0].includes("Configuration incomplete"), true);
+		assert.equal(adapter.log.error.firstCall.args[0].includes("Steam API Key"), true);
 	});
 
 	it("returns null and logs troubleshooting details when Steam ID resolution fails", async () => {
 		const adapter = createAdapter({ apiKey: "test-key" });
-		const apiRequestStub = sinon.stub(adapter, "apiRequest").resolves({
+		const apiRequestStub = stubMethod(adapter, "apiRequest").resolves({
 			data: {
 				response: {
 					success: 42,
@@ -96,47 +179,47 @@ describe("Steam adapter onboarding", () => {
 
 		const result = await adapter.resolveSteamID("unknown-user");
 
-		expect(result).to.equal(null);
-		expect(apiRequestStub.calledOnce).to.equal(true);
-		expect(adapter.log.warn.calledOnce).to.equal(true);
-		expect(adapter.log.warn.firstCall.args[0]).to.include("Could not resolve Steam ID");
-		expect(adapter.log.warn.firstCall.args[0]).to.include("profile is set to Public");
+		assert.equal(result, null);
+		assert.equal(apiRequestStub.calledOnce, true);
+		assert.equal(adapter.log.warn.calledOnce, true);
+		assert.equal(adapter.log.warn.firstCall.args[0].includes("Could not resolve Steam ID"), true);
+		assert.equal(adapter.log.warn.firstCall.args[0].includes("profile is set to Public"), true);
 	});
 
 	it("accepts a direct SteamID64 without calling vanity resolution", async () => {
 		const adapter = createAdapter({ apiKey: "test-key", steamName: "76561198000000000" });
-		sinon.stub(adapter, "checkAndCreateStates").resolves();
-		sinon.stub(adapter, "getStateAsync").resolves(null);
-		const resolveSteamIdStub = sinon.stub(adapter, "resolveSteamID");
-		sinon.stub(adapter, "setStateChangedAsync").resolves();
-		sinon.stub(adapter, "setupGames").resolves();
-		sinon.stub(adapter, "resetDailyRequestCount").resolves();
-		sinon.stub(adapter, "fetchAndSetData").resolves();
-		sinon.stub(adapter, "fetchRecentlyPlayedGames").resolves();
-		sinon.stub(adapter, "updateAllGamesNews").resolves();
-		sinon.stub(adapter, "setConnected");
-		sinon.stub(adapter, "subscribeStates");
+		stubMethod(adapter, "checkAndCreateStates").resolves();
+		stubMethod(adapter, "getStateAsync").resolves(null);
+		const resolveSteamIdStub = stubMethod(adapter, "resolveSteamID");
+		stubMethod(adapter, "setStateChangedAsync").resolves();
+		stubMethod(adapter, "setupGames").resolves();
+		stubMethod(adapter, "resetDailyRequestCount").resolves();
+		stubMethod(adapter, "fetchAndSetData").resolves();
+		stubMethod(adapter, "fetchRecentlyPlayedGames").resolves();
+		stubMethod(adapter, "updateAllGamesNews").resolves();
+		stubMethod(adapter, "setConnected");
+		stubMethod(adapter, "subscribeStates");
 
 		await adapter.onReady();
 
-		expect(resolveSteamIdStub.called).to.equal(false);
-		expect(adapter.steamID64).to.equal("76561198000000000");
+		assert.equal(resolveSteamIdStub.called, false);
+		assert.equal(adapter.steamID64, "76561198000000000");
 	});
 
 	it("logs follow-up hints when initialization cannot resolve the configured Steam ID", async () => {
 		const adapter = createAdapter({ apiKey: "test-key", steamName: "sample-user" });
-		sinon.stub(adapter, "checkAndCreateStates").resolves();
-		sinon.stub(adapter, "getStateAsync").resolves(null);
-		sinon.stub(adapter, "resolveSteamID").resolves(null);
-		const setConnectedStub = sinon.stub(adapter, "setConnected");
+		stubMethod(adapter, "checkAndCreateStates").resolves();
+		stubMethod(adapter, "getStateAsync").resolves(null);
+		stubMethod(adapter, "resolveSteamID").resolves(null);
+		const setConnectedStub = stubMethod(adapter, "setConnected");
 
 		await adapter.onReady();
 
-		expect(setConnectedStub.calledOnceWithExactly(false)).to.equal(true);
-		expect(adapter.log.error.calledOnce).to.equal(true);
-		expect(adapter.log.error.firstCall.args[0]).to.include("Could not resolve Steam ID");
-		expect(adapter.log.error.firstCall.args[0]).to.include("https://steamcommunity.com/id/sample-user");
-		expect(adapter.log.error.firstCall.args[0]).to.include("Public");
+		assert.equal(setConnectedStub.calledOnceWithExactly(false), true);
+		assert.equal(adapter.log.error.calledOnce, true);
+		assert.equal(adapter.log.error.firstCall.args[0].includes("Could not resolve Steam ID"), true);
+		assert.equal(adapter.log.error.firstCall.args[0].includes("https://steamcommunity.com/id/sample-user"), true);
+		assert.equal(adapter.log.error.firstCall.args[0].includes("Public"), true);
 	});
 
 	it("updates games.isPlaying to true when Steam API reports a running game", async () => {
@@ -144,11 +227,11 @@ describe("Steam adapter onboarding", () => {
 			apiKey: "test-key",
 			gameList: [{ gameName: "My Game", appId: 123, enabled: true }],
 		});
-		sinon.stub(adapter, "setObjectNotExistsAsync").resolves();
-		const setStateChangedStub = sinon.stub(adapter, "setStateChangedAsync").resolves();
-		sinon.stub(adapter, "getStateAsync").resolves({ val: "" });
-		sinon.stub(adapter, "getChannelsOfAsync").resolves([]);
-		sinon.stub(adapter, "fetchRecentlyPlayedGames").resolves();
+		stubMethod(adapter, "setObjectNotExistsAsync").resolves();
+		const setStateChangedStub = stubMethod(adapter, "setStateChangedAsync").resolves();
+		stubMethod(adapter, "getStateAsync").resolves({ val: "" });
+		stubMethod(adapter, "getChannelsOfAsync").resolves([]);
+		stubMethod(adapter, "fetchRecentlyPlayedGames").resolves();
 
 		await adapter.setPlayerState({
 			personaname: "Bloop",
@@ -159,17 +242,15 @@ describe("Steam adapter onboarding", () => {
 			gameid: "123",
 		});
 
-		expect(
-			setStateChangedStub.calledWithExactly("games.isPlaying", true, true),
-		).to.equal(true);
+		assert.equal(setStateChangedStub.calledWithExactly("games.isPlaying", true, true), true);
 	});
 
 	it("updates games.isPlaying to false when Steam API reports no running game", async () => {
 		const adapter = createAdapter({ apiKey: "test-key", gameList: [] });
-		sinon.stub(adapter, "setObjectNotExistsAsync").resolves();
-		const setStateChangedStub = sinon.stub(adapter, "setStateChangedAsync").resolves();
-		sinon.stub(adapter, "getStateAsync").resolves({ val: "Some Game" });
-		sinon.stub(adapter, "getChannelsOfAsync").resolves([]);
+		stubMethod(adapter, "setObjectNotExistsAsync").resolves();
+		const setStateChangedStub = stubMethod(adapter, "setStateChangedAsync").resolves();
+		stubMethod(adapter, "getStateAsync").resolves({ val: "Some Game" });
+		stubMethod(adapter, "getChannelsOfAsync").resolves([]);
 
 		await adapter.setPlayerState({
 			personaname: "Bloop",
@@ -179,20 +260,18 @@ describe("Steam adapter onboarding", () => {
 			gameextrainfo: "",
 		});
 
-		expect(
-			setStateChangedStub.calledWithExactly("games.isPlaying", false, true),
-		).to.equal(true);
+		assert.equal(setStateChangedStub.calledWithExactly("games.isPlaying", false, true), true);
 	});
 
 	it("routes manual currentGameAppId and currentGame writes to dedicated handlers", async () => {
 		const adapter = createAdapter({ apiKey: "test-key" });
-		const appIdHandlerStub = sinon.stub(adapter, "handleCurrentGameAppIdChange").resolves();
-		const gameHandlerStub = sinon.stub(adapter, "handleCurrentGameChange").resolves();
+		const appIdHandlerStub = stubMethod(adapter, "handleCurrentGameAppIdChange").resolves();
+		const gameHandlerStub = stubMethod(adapter, "handleCurrentGameChange").resolves();
 
 		await adapter.onStateChange("steam.0.currentGameAppId", { ack: false, val: 987 });
 		await adapter.onStateChange("steam.0.currentGame", { ack: false, val: "My Game" });
 
-		expect(appIdHandlerStub.calledOnceWithExactly(987)).to.equal(true);
-		expect(gameHandlerStub.calledOnceWithExactly("My Game")).to.equal(true);
+		assert.equal(appIdHandlerStub.calledOnceWithExactly(987), true);
+		assert.equal(gameHandlerStub.calledOnceWithExactly("My Game"), true);
 	});
 });
