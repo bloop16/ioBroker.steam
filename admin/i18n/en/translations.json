@@ -1,8 +1,9 @@
 {
     "Steam Name": "Steam Name",
     "Steam API Key": "Steam API Key",
-    "Steam Name Help": "Name of the Steam user",
-    "Steam API Key Help": "Generate API Key <a href=\"https://steamcommunity.com/dev/apikey\" target=\"_blank\">here</a>",
+    "Steam Name Help": "Steam vanity name or 17-digit SteamID64 from a public Steam profile",
+    "Steam API Key Help": "Log into Steam in your browser first, then generate an API key <a href=\"https://steamcommunity.com/dev/apikey\" target=\"_blank\">here</a>. Your Steam Community profile must be public.",
+    "Steam API Setup Info": "Before opening the Steam API key page, log into Steam in your browser and make sure the Steam Community profile is public.",
     "General": "General",
     "Games": "Games",
     "Games to Monitor": "Games to Monitor",

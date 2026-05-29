@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 // Don't silently swallow unhandled rejections
 process.on("unhandledRejection", (e) => {
     throw e;
@@ -11,6 +13,6 @@ const chaiAsPromised = require("chai-as-promised");
 
 chai.should(); // Call should() on the chai object
 
-// Call use() as a method on the chai object, checking for .default
-chai.use(sinonChai.default || sinonChai);
-chai.use(chaiAsPromised.default || chaiAsPromised);
+// Use CJS plugin functions directly to keep checkJs typing compatible.
+chai.use(sinonChai);
+chai.use(chaiAsPromised);

@@ -13,6 +13,11 @@
 
 		// This is necessary for the automatic typing of the adapter config
 		"resolveJsonModule": true,
+		"types": [
+			"node",
+			"mocha",
+			"@iobroker/types"
+		],
 
 		// If you want to disable the stricter type checks (not recommended), uncomment the following line
 		// "strict": false,

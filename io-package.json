@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.5.9",
+    "version": "0.5.10",
     "news": {
+      "0.5.10": {
+        "en": "Improved Steam setup guidance, fixed test and editor typing diagnostics, and prepared release documentation with archived changelog",
+        "de": "Steam-Einrichtungsanleitung verbessert, Test- und Editor-Typdiagnosen korrigiert und Release-Dokumentation mit archiviertem Changelog vorbereitet",
+        "ru": "Улучшены инструкции по настройке Steam, исправлены диагностические сообщения типизации в тестах и редакторе, подготовлена документация релиза с архивным журналом изменений",
+        "pt": "Melhorada a orientação de configuração do Steam, corrigidos diagnósticos de tipagem em testes e editor, e preparada a documentação de release com changelog arquivado",
+        "nl": "Verbeterde Steam-instelhulp, type-diagnostiek in tests en editor opgelost en release-documentatie met gearchiveerde changelog voorbereid",
+        "fr": "Amelioration du guide de configuration Steam, correction des diagnostics de typage dans les tests et l'editeur, et preparation de la documentation de release avec changelog archive",
+        "it": "Migliorata la guida di configurazione Steam, corretti i diagnostici di tipizzazione in test ed editor e preparata la documentazione di release con changelog archiviato",
+        "es": "Mejorada la guia de configuracion de Steam, corregidos los diagnosticos de tipado en pruebas y editor, y preparada la documentacion de release con changelog archivado",
+        "pl": "Ulepszono wskazowki konfiguracji Steam, naprawiono diagnostyke typowania w testach i edytorze oraz przygotowano dokumentacje wydania z archiwalnym changelogiem",
+        "uk": "Покращено підказки налаштування Steam, виправлено діагностику типів у тестах та редакторі й підготовлено документацію релізу з архівним журналом змін",
+        "zh-cn": "改进了 Steam 配置指引，修复了测试和编辑器中的类型诊断问题，并完成了带归档更新日志的发布文档准备"
+      },
       "0.5.9": {
         "en": "CI workflow concurrency config added, obsolete dependabot workflow file removed",
         "de": "CI-Workflow Concurrency-Konfiguration hinzugefügt, veraltete Dependabot-Workflow-Datei entfernt",

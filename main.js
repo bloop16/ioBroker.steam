@@ -1,7 +1,15 @@
 'use strict';
 
+/// <reference types="node" />
+
 const utils = require('@iobroker/adapter-core');
 const axios = require('axios');
+
+// eslint-disable-next-line jsdoc/check-tag-names
+/** @typedef {import('@iobroker/types/build/types').AdapterClass} IoBrokerAdapterClass */
+// eslint-disable-next-line jsdoc/check-tag-names
+/** @type {new (...args: any[]) => IoBrokerAdapterClass} */
+const AdapterBase = utils.Adapter;
 
 const API_BASE_URL = 'https://api.steampowered.com';
 const API_ENDPOINTS = {
@@ -14,6 +22,7 @@ const API_ENDPOINTS = {
 };
 
 const RATE_LIMIT_CONFIG = { REQUEST_TIMEOUT: 20000 };
+const STEAM_API_KEY_URL = 'https://steamcommunity.com/dev/apikey';
 const TIMER_CONFIG = {
     NEWS_UPDATE_INTERVAL_MS: 6 * 60 * 60 * 1000,
     MIN_PLAYER_SUMMARY_INTERVAL_SEC: 15,
@@ -43,7 +52,7 @@ async function ensureFolder(adapter, id, name) {
     await adapter.setObjectNotExistsAsync(id, { type: 'folder', common: { name }, native: {} });
 }
 
-class Steam extends utils.Adapter {
+class Steam extends AdapterBase {
     constructor(options) {
         super({ ...options, name: 'steam' });
         this._activeRequests = 0;
@@ -65,6 +74,30 @@ class Steam extends utils.Adapter {
         this.on('stateChange', this.onStateChange.bind(this));
         this.on('unload', this.onUnload.bind(this));
         this.on('message', this.onMessage.bind(this));
+    }
+
+    isSteamId64(value) {
+        return /^\d{17}$/.test(String(value || '').trim());
+    }
+
+    getSteamProfileUrl(value) {
+        const normalizedValue = String(value || '').trim();
+        if (!normalizedValue) {
+            return 'https://steamcommunity.com/';
+        }
+        if (this.isSteamId64(normalizedValue)) {
+            return `https://steamcommunity.com/profiles/${normalizedValue}`;
+        }
+        return `https://steamcommunity.com/id/${normalizedValue}`;
+    }
+
+    getSteamSetupHelp(value) {
+        return [
+            'Verify the configured Steam vanity name or use the 17-digit SteamID64 from your public profile.',
+            'Ensure the Steam Community profile is set to Public.',
+            `Open ${this.getSteamProfileUrl(value)} to verify that the profile is reachable.`,
+            `Verify your Steam API key at ${STEAM_API_KEY_URL}. You must be logged into Steam in your browser first.`,
+        ].join(' ');
     }
 
     async executeRequest(requestFunction) {
@@ -116,10 +149,12 @@ class Steam extends utils.Adapter {
             write: false,
         });
 
-        const apiKey = this.config.apiKey,
-            steamName = this.config.steamName;
+        const apiKey = String(this.config.apiKey || '').trim(),
+            steamName = String(this.config.steamName || '').trim();
         if (!apiKey || !steamName) {
-            this.log.error('API key and Steam name are required.');
+            this.log.error(
+                `Configuration incomplete. Required fields: Steam Name or SteamID64, and Steam API Key. Generate the API key at ${STEAM_API_KEY_URL} after logging into Steam in your browser, and ensure the Steam profile is public.`,
+            );
             this.setConnected(false);
             return;
         }
@@ -127,9 +162,9 @@ class Steam extends utils.Adapter {
             const storedSteamIdObj = await this.getStateAsync('steamID64');
             const storedSteamNameObj = await this.getStateAsync('steamName');
             if (!storedSteamIdObj?.val || !storedSteamNameObj?.val || storedSteamNameObj.val !== steamName) {
-                const steamID64 = await this.resolveSteamID(steamName);
+                const steamID64 = this.isSteamId64(steamName) ? steamName : await this.resolveSteamID(steamName);
                 if (!steamID64) {
-                    this.log.error('Could not resolve Steam ID.');
+                    this.log.error(`Could not resolve Steam ID. ${this.getSteamSetupHelp(steamName)}`);
                     this.setConnected(false);
                     return;
                 }
@@ -310,6 +345,19 @@ class Steam extends utils.Adapter {
         if (!state || state.ack) {
             return;
         }
+
+        // Handle manual writes to current game helper states.
+        if (id === `${this.namespace}.currentGameAppId`) {
+            const appId = Number(state.val) || 0;
+            await this.handleCurrentGameAppIdChange(appId);
+            return;
+        }
+        if (id === `${this.namespace}.currentGame`) {
+            const currentGame = typeof state.val === 'string' ? state.val : String(state.val || '');
+            await this.handleCurrentGameChange(currentGame);
+            return;
+        }
+
         const m = id.match(new RegExp(`^${this.namespace}\\.games\\.([^.]+)\\.isPlaying$`));
         if (!m) {
             return;
@@ -456,7 +504,7 @@ class Steam extends utils.Adapter {
 
         const currGameState = await this.getStateAsync('currentGame');
         const currentGame = String(currGameState?.val || '');
-        const isPlaying = appId > 0 || currentGame.trim() !== '';
+        const isPlaying = appId > 0 || (typeof currentGame === 'string' && currentGame.trim() !== '');
         await this.setStateChangedAsync('games.isPlaying', isPlaying, true);
     }
 
@@ -566,7 +614,7 @@ class Steam extends utils.Adapter {
                 const message = response?.data?.response?.message || 'No specific message';
                 this.logApiWarning(
                     'resolveSteamID',
-                    `Could not resolve Steam ID for ${steamName}. Reason: ${message} (Success Code: ${response?.data?.response?.success})`,
+                    `Could not resolve Steam ID for ${steamName}. Reason: ${message} (Success Code: ${response?.data?.response?.success}). Ensure the Steam Community profile is set to Public and the configured value matches the vanity name shown at ${this.getSteamProfileUrl(steamName)}.`,
                 );
                 return null;
             },
@@ -957,6 +1005,14 @@ class Steam extends utils.Adapter {
             }
 
             await Promise.all(updates);
+
+            // Keep aggregate flag in sync with Steam API status.
+            const isPlayingNow = !!isPlayingGameNow;
+            await this.setStateChangedAsync('games.isPlaying', isPlayingNow, true);
+            this.logApiDebug(
+                'setPlayerState',
+                `Synchronized games.isPlaying=${isPlayingNow} (currentGame='${currentGameName}', appId=${currentAppId})`,
+            );
         } catch (error) {
             this.log.error(`Error updating player state: ${error}`);
         }
@@ -1067,7 +1123,7 @@ class Steam extends utils.Adapter {
                         `Updated playtime/last played for game '${gameConfig.gameName}' (AppID: ${game.appid})`,
                     );
                 } else {
-                    this.logApiInfo(
+                    this.logApiDebug(
                         'processRecentlyPlayedGames',
                         `Game '${game.name}' (AppID: ${game.appid}) from recently played is not in the monitored list or is disabled.`,
                     );
