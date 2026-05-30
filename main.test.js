@@ -130,6 +130,7 @@ class FakeAdapter extends EventEmitter {
 	async getObjectAsync() {
 		return null;
 	}
+	async extendObjectAsync() {}
 	async delObjectAsync() {}
 	sendTo() {}
 }
@@ -273,5 +274,69 @@ describe("Steam adapter onboarding", () => {
 
 		assert.equal(appIdHandlerStub.calledOnceWithExactly(987), true);
 		assert.equal(gameHandlerStub.calledOnceWithExactly("My Game"), true);
+	});
+
+	it("repairs invalid playerState.common.states definition", async () => {
+		const adapter = createAdapter({ apiKey: "test-key" });
+		stubMethod(adapter, "getObjectAsync").resolves({
+			type: "state",
+			common: {
+				states: "broken",
+			},
+		});
+		const extendObjectStub = stubMethod(adapter, "extendObjectAsync").resolves();
+
+		await adapter.ensurePlayerStateDefinition();
+
+		assert.equal(extendObjectStub.calledOnce, true);
+		assert.equal(extendObjectStub.firstCall.args[0], "playerState");
+		assert.equal(typeof extendObjectStub.firstCall.args[1].common.states, "object");
+		assert.equal(extendObjectStub.firstCall.args[1].common.states[0], "Offline");
+		assert.equal(extendObjectStub.firstCall.args[1].common.states[6], "Looking to play");
+	});
+
+	it("creates playerState definition when missing", async () => {
+		const adapter = createAdapter({ apiKey: "test-key" });
+		stubMethod(adapter, "getObjectAsync").resolves(null);
+		const setObjectStub = stubMethod(adapter, "setObjectNotExistsAsync").resolves();
+		const extendObjectStub = stubMethod(adapter, "extendObjectAsync").resolves();
+
+		await adapter.ensurePlayerStateDefinition();
+
+		assert.equal(setObjectStub.calledOnce, true);
+		assert.equal(setObjectStub.firstCall.args[0], "playerState");
+		assert.equal(extendObjectStub.called, false);
+	});
+
+	it("falls back to legacy app list endpoint on 404", async () => {
+		const adapter = createAdapter({ apiKey: "test-key" });
+		let callCount = 0;
+		adapter.apiRequest = createSpy(async () => {
+			callCount += 1;
+			if (callCount === 1) {
+				const error = new Error("Not Found");
+				error.response = { status: 404, statusText: "Not Found" };
+				throw error;
+			}
+			return {
+				status: 200,
+				data: {
+					applist: {
+						apps: [
+							{ appid: 570, name: "Dota 2" },
+							{ appid: 730, name: "Counter-Strike 2" },
+						],
+					},
+				},
+			};
+		});
+
+		const appList = await adapter.fetchSteamAppList();
+
+		assert.equal(Array.isArray(appList), true);
+		assert.equal(appList.length, 2);
+		assert.equal(adapter.apiRequest.calls.length, 2);
+		assert.equal(adapter.apiRequest.calls[0][0].includes("/v2/"), true);
+		assert.equal(adapter.apiRequest.calls[1][0].includes("/v0002/"), true);
 	});
 });

@@ -11,7 +11,8 @@ const API_BASE_URL = 'https://api.steampowered.com';
 const API_ENDPOINTS = {
     RESOLVE_VANITY_URL: `${API_BASE_URL}/ISteamUser/ResolveVanityURL/v0001/`,
     GET_PLAYER_SUMMARIES: `${API_BASE_URL}/ISteamUser/GetPlayerSummaries/v2/`,
-    GET_APP_LIST: `${API_BASE_URL}/ISteamApps/GetAppList/v0002/`,
+    GET_APP_LIST: `${API_BASE_URL}/ISteamApps/GetAppList/v2/`,
+    GET_APP_LIST_LEGACY: `${API_BASE_URL}/ISteamApps/GetAppList/v0002/`,
     GET_NEWS_FOR_APP: `${API_BASE_URL}/ISteamNews/GetNewsForApp/v0002/`,
     GET_OWNED_GAMES: `${API_BASE_URL}/IPlayerService/GetOwnedGames/v0001/`,
     GET_RECENTLY_PLAYED_GAMES: `${API_BASE_URL}/IPlayerService/GetRecentlyPlayedGames/v0001/`,
@@ -619,6 +620,47 @@ class Steam extends AdapterBase {
         );
     }
 
+    async ensurePlayerStateDefinition() {
+        const playerStates = {
+            0: 'Offline',
+            1: 'Online',
+            2: 'Busy',
+            3: 'Away',
+            4: 'Snooze',
+            5: 'Looking to trade',
+            6: 'Looking to play',
+        };
+
+        const expectedCommon = {
+            name: 'Player State',
+            type: 'number',
+            role: 'state',
+            read: true,
+            write: false,
+            states: playerStates,
+        };
+
+        const playerStateObj = await this.getObjectAsync('playerState');
+        if (!playerStateObj) {
+            await ensureState(this, 'playerState', expectedCommon);
+            this.log.debug('Created playerState object definition.');
+            return;
+        }
+
+        const currentStates = playerStateObj.common && playerStateObj.common.states;
+        const requiredPlayerStateKeys = ['0', '1', '2', '3', '4', '5', '6'];
+        const hasValidStatesObject =
+            currentStates &&
+            typeof currentStates === 'object' &&
+            !Array.isArray(currentStates) &&
+            requiredPlayerStateKeys.every(key => Object.prototype.hasOwnProperty.call(currentStates, key));
+
+        if (!hasValidStatesObject) {
+            await this.extendObjectAsync('playerState', { common: expectedCommon });
+            this.log.info('Repaired invalid object definition for playerState.common.states.');
+        }
+    }
+
     async checkAndCreateStates() {
         await ensureState(this, 'info.connection', {
             name: 'Connection status',
@@ -679,21 +721,7 @@ class Steam extends AdapterBase {
             read: true,
             write: false,
         });
-        await ensureState(this, 'playerState', {
-            name: 'Player State',
-            type: 'number',
-            role: 'state',
-            write: false,
-            states: {
-                0: 'Offline',
-                1: 'Online',
-                2: 'Busy',
-                3: 'Away',
-                4: 'Snooze',
-                5: 'Looking to trade',
-                6: 'Looking to play',
-            },
-        });
+        await this.ensurePlayerStateDefinition();
         await ensureState(this, 'currentGame', {
             name: 'Current Game',
             type: 'string',
@@ -1632,39 +1660,51 @@ class Steam extends AdapterBase {
     }
 
     async fetchSteamAppList() {
+        this.logApiInfo('fetchSteamAppList', 'Fetching Steam app list...');
+
         try {
-            this.logApiInfo('fetchSteamAppList', 'Fetching Steam app list...');
-
-            this.updateApiTimestamp('appList');
-
-            const response = await this.apiRequest(API_ENDPOINTS.GET_APP_LIST, {
-                format: 'json',
-            });
-
-            if (
-                response.status === 200 &&
-                response.data &&
-                response.data.applist &&
-                response.data.applist.apps &&
-                Array.isArray(response.data.applist.apps)
-            ) {
-                this.steamAppList = response.data.applist.apps
-                    .filter(app => app.name && app.name.trim() !== '')
-                    .sort((a, b) => a.name.localeCompare(b.name));
-                this.lastAppListFetch = Date.now();
-                this.logApiInfo('fetchSteamAppList', `Successfully fetched ${this.steamAppList.length} apps.`);
-                return this.steamAppList;
+            const appList = await this.fetchSteamAppListFromEndpoint(API_ENDPOINTS.GET_APP_LIST);
+            if (appList) {
+                return appList;
             }
-            this.logApiError(
-                'fetchSteamAppList',
-                new Error('Invalid response format from API'),
-                'Failed to fetch Steam app list',
-            );
-            return null;
+        } catch (error) {
+            const isNotFound = error && error.response && error.response.status === 404;
+            if (!isNotFound) {
+                this.logApiError('fetchSteamAppList', error, 'Error fetching Steam app list');
+                return null;
+            }
+
+            this.logApiWarning('fetchSteamAppList', 'Primary app list endpoint returned 404. Trying legacy endpoint.');
+        }
+
+        try {
+            return await this.fetchSteamAppListFromEndpoint(API_ENDPOINTS.GET_APP_LIST_LEGACY);
         } catch (error) {
             this.logApiError('fetchSteamAppList', error, 'Error fetching Steam app list');
             return null;
         }
+    }
+
+    async fetchSteamAppListFromEndpoint(endpoint) {
+        const response = await this.apiRequest(endpoint, { format: 'json' });
+        if (
+            response.status === 200 &&
+            response.data &&
+            response.data.applist &&
+            response.data.applist.apps &&
+            Array.isArray(response.data.applist.apps)
+        ) {
+            this.updateApiTimestamp('appList');
+            this.steamAppList = response.data.applist.apps
+                .filter(app => app && app.name && app.name.trim() !== '')
+                .sort((a, b) => a.name.localeCompare(b.name));
+            this.lastAppListFetch = Date.now();
+            this.logApiInfo('fetchSteamAppList', `Successfully fetched ${this.steamAppList.length} apps.`);
+            return this.steamAppList;
+        }
+
+        this.logApiWarning('fetchSteamAppList', `Invalid app list response from endpoint: ${endpoint}`);
+        return null;
     }
 
     warnSimilarGames(gameName) {
