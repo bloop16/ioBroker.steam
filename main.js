@@ -191,7 +191,6 @@ class Steam extends AdapterBase {
             this.log.error(`Error during initialization: ${error}`);
             this.setConnected(false);
         }
-
     }
 
     schedulePlayerSummary() {
@@ -487,7 +486,6 @@ class Steam extends AdapterBase {
         }
     }
 
-
     setConnected(connected) {
         this.getState('info.connection', (err, state) => {
             if (!err && state?.val !== connected) {
@@ -528,8 +526,8 @@ class Steam extends AdapterBase {
             2: 'Busy',
             3: 'Away',
             4: 'Snooze',
-            5: 'Looking to trade',
-            6: 'Looking to play',
+            5: 'Looking to Trade',
+            6: 'Looking to Play',
         };
 
         const playerStateObj = await this.getObjectAsync('playerState');
@@ -1608,7 +1606,10 @@ class Steam extends AdapterBase {
                 if (status === 404) {
                     this.logApiWarning('fetchSteamAppList', 'Steam app list endpoint returned 404.');
                 } else {
-                    this.logApiWarning('fetchSteamAppList', `Steam app list request failed (${status || 'no status'}).`);
+                    this.logApiWarning(
+                        'fetchSteamAppList',
+                        `Steam app list request failed (${status || 'no status'}).`,
+                    );
                 }
                 this._hasLoggedAppListFailure = true;
             }

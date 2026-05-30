@@ -287,10 +287,11 @@ describe("Steam adapter onboarding", () => {
 		await adapter.ensurePlayerStateDefinition();
 
 		assert.equal(extendObjectStub.calledOnce, true);
-		assert.equal(extendObjectStub.firstCall.args[0], "playerState");
-		assert.equal(typeof extendObjectStub.firstCall.args[1].common.states, "object");
-		assert.equal(extendObjectStub.firstCall.args[1].common.states[0], "Offline");
-		assert.equal(extendObjectStub.firstCall.args[1].common.states[6], "Looking to play");
+		const extendCallArgs = /** @type {any[]} */ (extendObjectStub.calls[0]);
+		assert.equal(extendCallArgs[0], "playerState");
+		assert.equal(typeof extendCallArgs[1].common.states, "object");
+		assert.equal(extendCallArgs[1].common.states[0], "Offline");
+		assert.equal(extendCallArgs[1].common.states[6], "Looking to Play");
 	});
 
 	it("does not touch playerState when object is missing", async () => {
@@ -308,7 +309,7 @@ describe("Steam adapter onboarding", () => {
 		let callCount = 0;
 		adapter.apiRequest = createSpy(async () => {
 			callCount += 1;
-			const error = new Error("Not Found");
+			const error = /** @type {any} */ (new Error("Not Found"));
 			error.response = { status: 404, statusText: "Not Found" };
 			throw error;
 		});
