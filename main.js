@@ -11,8 +11,7 @@ const API_BASE_URL = 'https://api.steampowered.com';
 const API_ENDPOINTS = {
     RESOLVE_VANITY_URL: `${API_BASE_URL}/ISteamUser/ResolveVanityURL/v0001/`,
     GET_PLAYER_SUMMARIES: `${API_BASE_URL}/ISteamUser/GetPlayerSummaries/v2/`,
-    GET_APP_LIST: `${API_BASE_URL}/ISteamApps/GetAppList/v2/`,
-    GET_APP_LIST_LEGACY: `${API_BASE_URL}/ISteamApps/GetAppList/v0002/`,
+    GET_APP_LIST: `${API_BASE_URL}/ISteamApps/GetAppList/v0002/`,
     GET_NEWS_FOR_APP: `${API_BASE_URL}/ISteamNews/GetNewsForApp/v0002/`,
     GET_OWNED_GAMES: `${API_BASE_URL}/IPlayerService/GetOwnedGames/v0001/`,
     GET_RECENTLY_PLAYED_GAMES: `${API_BASE_URL}/IPlayerService/GetRecentlyPlayedGames/v0001/`,
@@ -65,6 +64,7 @@ class Steam extends AdapterBase {
         this.isShuttingDown = false;
         this._apiTimeouts = [];
         this._lastApiCallTime = { playerSummary: 0, newsForGame: {}, appList: 0, ownedGames: 0 };
+        this._hasLoggedAppListFailure = false;
         this._consecutiveRateLimits = 0;
         this._lastRateLimitTime = null;
         this.on('ready', this.onReady.bind(this));
@@ -192,8 +192,6 @@ class Steam extends AdapterBase {
             this.setConnected(false);
         }
 
-        this.subscribeStates('currentGameAppId');
-        this.subscribeStates('currentGame');
     }
 
     schedulePlayerSummary() {
@@ -343,18 +341,6 @@ class Steam extends AdapterBase {
             return;
         }
 
-        // Handle manual writes to current game helper states.
-        if (id === `${this.namespace}.currentGameAppId`) {
-            const appId = Number(state.val) || 0;
-            await this.handleCurrentGameAppIdChange(appId);
-            return;
-        }
-        if (id === `${this.namespace}.currentGame`) {
-            const currentGame = typeof state.val === 'string' ? state.val : String(state.val || '');
-            await this.handleCurrentGameChange(currentGame);
-            return;
-        }
-
         const m = id.match(new RegExp(`^${this.namespace}\\.games\\.([^.]+)\\.isPlaying$`));
         if (!m) {
             return;
@@ -454,57 +440,6 @@ class Steam extends AdapterBase {
         }
     }
 
-    async handleCurrentGameAppIdChange(appId) {
-        try {
-            const gameChannels = await this.getChannelsOfAsync('games');
-            for (const channel of gameChannels) {
-                const gameId = channel._id.split('.').pop();
-                await ensureState(
-                    this,
-                    `games.${gameId}.isPlaying`,
-                    {
-                        name: 'Is Playing',
-                        type: 'boolean',
-                        role: 'state',
-                        read: true,
-                        write: false,
-                    },
-                    false,
-                );
-            }
-            if (appId > 0) {
-                for (const channel of gameChannels) {
-                    const gameId = channel._id.split('.').pop();
-                    const gameAppIdState = await this.getStateAsync(`games.${gameId}.gameAppId`);
-                    if (gameAppIdState && Number(gameAppIdState.val) === Number(appId)) {
-                        await ensureState(
-                            this,
-                            `games.${gameId}.isPlaying`,
-                            {
-                                name: 'Is Playing',
-                                type: 'boolean',
-                                role: 'state',
-                                read: true,
-                                write: false,
-                            },
-                            true,
-                        );
-                        await this.fetchRecentlyPlayedGames();
-                        this.log.debug(`Set game ${gameId} as currently playing (AppID: ${appId})`);
-                        break;
-                    }
-                }
-            }
-        } catch (error) {
-            this.log.error(`Error in handleCurrentGameAppIdChange: ${error}`);
-        }
-
-        const currGameState = await this.getStateAsync('currentGame');
-        const currentGame = String(currGameState?.val || '');
-        const isPlaying = appId > 0 || (typeof currentGame === 'string' && currentGame.trim() !== '');
-        await this.setStateChangedAsync('games.isPlaying', isPlaying, true);
-    }
-
     async handleGameStopped() {
         try {
             this.log.info('Resetting all games to not playing.');
@@ -552,40 +487,6 @@ class Steam extends AdapterBase {
         }
     }
 
-    async handleCurrentGameChange(currentGame) {
-        try {
-            const gameChannels = await this.getChannelsOfAsync('games');
-            for (const channel of gameChannels) {
-                const gameId = channel._id.split('.').pop();
-                await ensureState(
-                    this,
-                    `games.${gameId}.isPlaying`,
-                    { name: 'Is Playing', type: 'boolean', role: 'state', read: true, write: false },
-                    false,
-                );
-            }
-
-            const safeGameName = currentGame.replace(/[^a-zA-Z0-9]/g, '_');
-            const gameObj = await this.getObjectAsync(`games.${safeGameName}`);
-            if (gameObj) {
-                await ensureState(
-                    this,
-                    `games.${safeGameName}.isPlaying`,
-                    { name: 'Is Playing', type: 'boolean', role: 'state', read: true, write: false },
-                    true,
-                );
-                this.log.debug(`Set ${currentGame} as currently playing game`);
-            }
-        } catch (error) {
-            this.log.error(`Error in handleCurrentGameChange: ${error}`);
-        }
-
-        const appIdState = await this.getStateAsync('currentGameAppId');
-        const appIdVal = appIdState?.val;
-        const appId = typeof appIdVal === 'number' ? appIdVal : 0;
-        const isPlaying = appId > 0 || (typeof currentGame === 'string' && currentGame.trim() !== '');
-        await this.setStateChangedAsync('games.isPlaying', isPlaying, true);
-    }
 
     setConnected(connected) {
         this.getState('info.connection', (err, state) => {
@@ -631,33 +532,40 @@ class Steam extends AdapterBase {
             6: 'Looking to play',
         };
 
-        const expectedCommon = {
-            name: 'Player State',
-            type: 'number',
-            role: 'state',
-            read: true,
-            write: false,
-            states: playerStates,
-        };
-
         const playerStateObj = await this.getObjectAsync('playerState');
         if (!playerStateObj) {
-            await ensureState(this, 'playerState', expectedCommon);
-            this.log.debug('Created playerState object definition.');
+            return;
+        }
+
+        if (!playerStateObj.common) {
+            await this.extendObjectAsync('playerState', {
+                common: {
+                    name: 'Player State',
+                    type: 'number',
+                    role: 'state',
+                    read: true,
+                    write: false,
+                    states: playerStates,
+                },
+            });
             return;
         }
 
         const currentStates = playerStateObj.common && playerStateObj.common.states;
-        const requiredPlayerStateKeys = ['0', '1', '2', '3', '4', '5', '6'];
         const hasValidStatesObject =
-            currentStates &&
-            typeof currentStates === 'object' &&
-            !Array.isArray(currentStates) &&
-            requiredPlayerStateKeys.every(key => Object.prototype.hasOwnProperty.call(currentStates, key));
+            currentStates && typeof currentStates === 'object' && !Array.isArray(currentStates);
 
         if (!hasValidStatesObject) {
-            await this.extendObjectAsync('playerState', { common: expectedCommon });
-            this.log.info('Repaired invalid object definition for playerState.common.states.');
+            await this.extendObjectAsync('playerState', {
+                common: {
+                    name: 'Player State',
+                    type: 'number',
+                    role: 'state',
+                    read: true,
+                    write: false,
+                    states: playerStates,
+                },
+            });
         }
     }
 
@@ -897,11 +805,15 @@ class Steam extends AdapterBase {
 
                 if (!foundInConfig && (currentAppId > 0 || currentGameName)) {
                     let gameData = null;
-                    if (currentAppId > 0) {
-                        gameData = await this.findGame(currentAppId, true);
-                    }
-                    if ((!gameData || !gameData.name) && currentGameName) {
-                        gameData = await this.findGame(currentGameName, false);
+                    if (currentAppId > 0 && currentGameName) {
+                        gameData = { appId: currentAppId, name: currentGameName };
+                    } else {
+                        if (currentAppId > 0) {
+                            gameData = await this.findGame(currentAppId, true);
+                        }
+                        if ((!gameData || !gameData.name) && currentGameName) {
+                            gameData = await this.findGame(currentGameName, false);
+                        }
                     }
                     if (gameData && gameData.appId && gameData.name) {
                         this.config.gameList.push({
@@ -1586,11 +1498,17 @@ class Steam extends AdapterBase {
         try {
             this.log.debug(`findGame called with searchTerm: ${searchTerm}, isAppId: ${isAppId}`);
 
-            if (!this.steamAppList || Date.now() - this.lastAppListFetch > TIMER_CONFIG.APP_LIST_REFRESH_MS) {
+            const now = Date.now();
+            const appListIsFresh = now - this.lastAppListFetch <= TIMER_CONFIG.APP_LIST_REFRESH_MS;
+            if (!this.steamAppList && appListIsFresh) {
+                return null;
+            }
+
+            if (!this.steamAppList || !appListIsFresh) {
                 this.log.debug('App list missing or outdated, fetching...');
                 await this.fetchSteamAppList();
                 if (!this.steamAppList) {
-                    this.log.error('fetchSteamAppList completed but this.steamAppList is still null. Cannot search.');
+                    this.log.warn('fetchSteamAppList completed but this.steamAppList is still null. Cannot search.');
                     return null;
                 }
                 this.log.debug(`App list fetched. Size: ${this.steamAppList.length}`);
@@ -1661,49 +1579,42 @@ class Steam extends AdapterBase {
 
     async fetchSteamAppList() {
         this.logApiInfo('fetchSteamAppList', 'Fetching Steam app list...');
-
         try {
-            const appList = await this.fetchSteamAppListFromEndpoint(API_ENDPOINTS.GET_APP_LIST);
-            if (appList) {
-                return appList;
+            const response = await this.apiRequest(API_ENDPOINTS.GET_APP_LIST, { format: 'json' });
+            if (
+                response.status === 200 &&
+                response.data &&
+                response.data.applist &&
+                response.data.applist.apps &&
+                Array.isArray(response.data.applist.apps)
+            ) {
+                this.updateApiTimestamp('appList');
+                this.steamAppList = response.data.applist.apps
+                    .filter(app => app && app.name && app.name.trim() !== '')
+                    .sort((a, b) => a.name.localeCompare(b.name));
+                this.lastAppListFetch = Date.now();
+                this._hasLoggedAppListFailure = false;
+                this.logApiInfo('fetchSteamAppList', `Successfully fetched ${this.steamAppList.length} apps.`);
+                return this.steamAppList;
+            }
+
+            if (!this._hasLoggedAppListFailure) {
+                this.logApiWarning('fetchSteamAppList', 'Invalid app list response from Steam API.');
+                this._hasLoggedAppListFailure = true;
             }
         } catch (error) {
-            const isNotFound = error && error.response && error.response.status === 404;
-            if (!isNotFound) {
-                this.logApiError('fetchSteamAppList', error, 'Error fetching Steam app list');
-                return null;
+            if (!this._hasLoggedAppListFailure) {
+                const status = error?.response?.status;
+                if (status === 404) {
+                    this.logApiWarning('fetchSteamAppList', 'Steam app list endpoint returned 404.');
+                } else {
+                    this.logApiWarning('fetchSteamAppList', `Steam app list request failed (${status || 'no status'}).`);
+                }
+                this._hasLoggedAppListFailure = true;
             }
-
-            this.logApiWarning('fetchSteamAppList', 'Primary app list endpoint returned 404. Trying legacy endpoint.');
         }
 
-        try {
-            return await this.fetchSteamAppListFromEndpoint(API_ENDPOINTS.GET_APP_LIST_LEGACY);
-        } catch (error) {
-            this.logApiError('fetchSteamAppList', error, 'Error fetching Steam app list');
-            return null;
-        }
-    }
-
-    async fetchSteamAppListFromEndpoint(endpoint) {
-        const response = await this.apiRequest(endpoint, { format: 'json' });
-        if (
-            response.status === 200 &&
-            response.data &&
-            response.data.applist &&
-            response.data.applist.apps &&
-            Array.isArray(response.data.applist.apps)
-        ) {
-            this.updateApiTimestamp('appList');
-            this.steamAppList = response.data.applist.apps
-                .filter(app => app && app.name && app.name.trim() !== '')
-                .sort((a, b) => a.name.localeCompare(b.name));
-            this.lastAppListFetch = Date.now();
-            this.logApiInfo('fetchSteamAppList', `Successfully fetched ${this.steamAppList.length} apps.`);
-            return this.steamAppList;
-        }
-
-        this.logApiWarning('fetchSteamAppList', `Invalid app list response from endpoint: ${endpoint}`);
+        this.lastAppListFetch = Date.now();
         return null;
     }
 
