@@ -26,7 +26,6 @@
     "Directly resetting isPlaying for game %s": "Безпосередньо скидання isplaying для гри %s",
     "Disabled \"Enable owned games\" option to prevent refetching.": "Варіант \"Увімкнути ігри\", щоб запобігти переробці.",
     "Enable game name suggestions": "Увімкнути пропозиції назви гри",
-    "Enable game suggestions": "Увімкнути пропозиції назви гри",
     "Enable game suggestions help": "Якщо ввімкнено, пропонує подібні імена ігор, якщо неможливо знайти гру",
     "Enabled": "Увімкнено",
     "Error adding new game: %s": "Помилка додавання нової гри: %s",

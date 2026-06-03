@@ -26,7 +26,6 @@
     "Directly resetting isPlaying for game %s": "Direct resetten van het playen voor game %s",
     "Disabled \"Enable owned games\" option to prevent refetching.": "Uitgeschakelde optie \"Eigendom in eigendom in staat\" om refetching te voorkomen.",
     "Enable game name suggestions": "Schakel de suggesties van spelnamen in",
-    "Enable game suggestions": "Schakel de suggesties van spelnamen in",
     "Enable game suggestions help": "Indien ingeschakeld, suggereert vergelijkbare spelnamen als een game niet kan worden gevonden",
     "Enabled": "Ingeschakeld",
     "Error adding new game: %s": "Fout bij het toevoegen van nieuw spel: %s",

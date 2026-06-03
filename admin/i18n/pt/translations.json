@@ -26,7 +26,6 @@
     "Directly resetting isPlaying for game %s": "Redefinindo diretamente o ISplaying para o jogo %s",
     "Disabled \"Enable owned games\" option to prevent refetching.": "A opção desativada de \"jogos de propriedade\" para evitar o reforma.",
     "Enable game name suggestions": "Ativar sugestões de nome do jogo",
-    "Enable game suggestions": "Ativar sugestões de nome do jogo",
     "Enable game suggestions help": "Quando ativado, sugere nomes de jogos semelhantes se um jogo não puder ser encontrado",
     "Enabled": "Habilitado",
     "Error adding new game: %s": "Erro adicionando novo jogo: %s",

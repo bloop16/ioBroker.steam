@@ -26,7 +26,6 @@
     "Directly resetting isPlaying for game %s": "直接重置游戏％s",
     "Disabled \"Enable owned games\" option to prevent refetching.": "禁用的“启用游戏”选项可防止恢复。",
     "Enable game name suggestions": "启用游戏名称建议",
-    "Enable game suggestions": "启用游戏名称建议",
     "Enable game suggestions help": "启用后，建议如果找不到游戏，则建议类似的游戏名称",
     "Enabled": "启用",
     "Error adding new game: %s": "错误添加新游戏：％s",

@@ -26,7 +26,6 @@
     "Directly resetting isPlaying for game %s": "Непосредственно сбросить Isplaying для игры %s",
     "Disabled \"Enable owned games\" option to prevent refetching.": "Отключенный вариант «Включить игры», чтобы предотвратить переизбыток.",
     "Enable game name suggestions": "Включить предложения по названию игры",
-    "Enable game suggestions": "Включить предложения по названию игры",
     "Enable game suggestions help": "При включении предлагается аналогичные имена игр, если игра не может быть найдена",
     "Enabled": "Включено",
     "Error adding new game: %s": "Ошибка добавления новой игры: %s",

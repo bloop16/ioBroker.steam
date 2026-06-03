@@ -26,7 +26,6 @@
     "Directly resetting isPlaying for game %s": "Réinitialisation directement issu pour le jeu% s",
     "Disabled \"Enable owned games\" option to prevent refetching.": "Option désactivée \"Activer les jeux possédés\" pour empêcher le refonte.",
     "Enable game name suggestions": "Activer les suggestions de noms de jeu",
-    "Enable game suggestions": "Activer les suggestions de noms de jeu",
     "Enable game suggestions help": "Lorsqu'il est activé, suggère des noms de jeux similaires si un jeu ne peut être trouvé",
     "Enabled": "Activé",
     "Error adding new game: %s": "Erreur ajoutant un nouveau jeu:% s",
