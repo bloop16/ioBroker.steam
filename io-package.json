@@ -319,15 +319,15 @@
         "role": "state",
         "read": true,
         "write": false,
-        "states": [
-          "Offline",
-          "Online",
-          "Busy",
-          "Away",
-          "Snooze",
-          "Looking to Trade",
-          "Looking to Play"
-        ]
+        "states": {
+          "0": "Offline",
+          "1": "Online",
+          "2": "Busy",
+          "3": "Away",
+          "4": "Snooze",
+          "5": "Looking to Trade",
+          "6": "Looking to Play"
+        }
       },
       "native": {}
     },
