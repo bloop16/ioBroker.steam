@@ -233,9 +233,9 @@ class Steam extends AdapterBase {
             this.log.info('Graceful shutdown started.');
             this._requestQueue.forEach(item => item.reject(new Error('Adapter is shutting down.')));
             this._requestQueue = [];
-            forceShutdownTimer = setTimeout(() => {
+            forceShutdownTimer = this.setTimeout(() => {
                 if (waitIntervalId) {
-                    clearInterval(waitIntervalId);
+                    this.clearInterval(waitIntervalId);
                 }
                 cleanupCompleted();
             }, TIMER_CONFIG.FORCE_SHUTDOWN_TIMEOUT_MS);
@@ -246,10 +246,10 @@ class Steam extends AdapterBase {
                 }
                 shutdownCompleted = true;
                 if (forceShutdownTimer) {
-                    clearTimeout(forceShutdownTimer);
+                    this.clearTimeout(forceShutdownTimer);
                 }
                 if (waitIntervalId) {
-                    clearInterval(waitIntervalId);
+                    this.clearInterval(waitIntervalId);
                 }
                 this.log.info('Shutdown complete.');
                 callback();
@@ -264,7 +264,7 @@ class Steam extends AdapterBase {
             this._apiTimeouts = [];
             if (this._activeRequests > 0) {
                 this.log.info(`Waiting for ${this._activeRequests} active requests to complete...`);
-                waitIntervalId = setInterval(() => {
+                waitIntervalId = this.setInterval(() => {
                     if (this._activeRequests <= 0) {
                         cleanupCompleted();
                     }
@@ -275,7 +275,7 @@ class Steam extends AdapterBase {
         } catch (e) {
             this.log.error(`Error during unload: ${e}`);
             if (forceShutdownTimer) {
-                clearTimeout(forceShutdownTimer);
+                this.clearTimeout(forceShutdownTimer);
             }
             callback();
         }

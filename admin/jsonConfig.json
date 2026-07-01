@@ -78,7 +78,7 @@
                     "lg": 4,
                     "xl": 4,
                     "newLine": true,
-                    "tooltip": "Load games owned by this Steam account"
+                    "tooltip": "Get owned games help"
                 },
                 "getOwnedGamesHint": {
                     "type": "staticText",
