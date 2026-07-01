@@ -1,5 +1,14 @@
 # Older changes
 
+## 0.5.10
+- (bloop16) Improved Steam setup guidance
+- (bloop16) Fixed test and editor typing diagnostics
+- (bloop16) Prepared release documentation with archived changelog
+
+## 0.5.9
+- (bloop16) Added CI workflow concurrency configuration
+- (bloop16) Removed obsolete Dependabot workflow file
+
 ## 0.5.8 (2026-01-19)
 - (bloop16) Repository checker compliance fully verified
 - (bloop16) All dependencies updated to latest stable versions

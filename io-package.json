@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.5.10",
+    "version": "0.5.11",
     "news": {
+      "0.5.11": {
+        "en": "Updated axios to 1.18.1 and adapter-core to 3.4.1, improved shutdown timer handling, and refreshed admin translations",
+        "de": "Axios auf 1.18.1 und adapter-core auf 3.4.1 aktualisiert, Timer-Handling beim Shutdown verbessert und Admin-Uebersetzungen aktualisiert",
+        "ru": "Обновлены axios до 1.18.1 и adapter-core до 3.4.1, улучшена обработка таймеров при завершении работы и обновлены переводы в админке",
+        "pt": "Axios atualizado para 1.18.1 e adapter-core para 3.4.1, tratamento de temporizadores no desligamento melhorado e traducoes do admin atualizadas",
+        "nl": "Axios bijgewerkt naar 1.18.1 en adapter-core naar 3.4.1, timerafhandeling bij afsluiten verbeterd en admin-vertalingen bijgewerkt",
+        "fr": "Axios mis a jour vers 1.18.1 et adapter-core vers 3.4.1, gestion des timers a l'arret amelioree et traductions admin mises a jour",
+        "it": "Axios aggiornato alla versione 1.18.1 e adapter-core alla 3.4.1, migliorata la gestione dei timer in spegnimento e aggiornate le traduzioni admin",
+        "es": "Axios actualizado a 1.18.1 y adapter-core a 3.4.1, mejorado el manejo de temporizadores en apagado y actualizadas las traducciones del admin",
+        "pl": "Zaktualizowano axios do 1.18.1 i adapter-core do 3.4.1, ulepszono obsluge timerow przy zamykaniu i odswiezono tlumaczenia panelu admin",
+        "uk": "Оновлено axios до 1.18.1 і adapter-core до 3.4.1, покращено обробку таймерів під час вимкнення та оновлено переклади в адмінці",
+        "zh-cn": "已将 axios 更新到 1.18.1、adapter-core 更新到 3.4.1，改进了关闭时的定时器处理，并更新了管理界面翻译"
+      },
       "0.5.10": {
         "en": "Improved Steam setup guidance, fixed test and editor typing diagnostics, and prepared release documentation with archived changelog",
         "de": "Steam-Einrichtungsanleitung verbessert, Test- und Editor-Typdiagnosen korrigiert und Release-Dokumentation mit archiviertem Changelog vorbereitet",
@@ -28,71 +41,6 @@
         "pl": "Dodano konfigurację współbieżności workflow CI, usunięto przestarzały plik workflow dependabot",
         "uk": "Додано конфігурацію паралелізму CI-workflow, видалено застарілий файл workflow dependabot",
         "zh-cn": "添加了 CI workflow 并发配置，删除了过时的 dependabot workflow 文件"
-      },
-      "0.5.8": {
-        "en": "    *Repository checker compliance verified, all dependencies updated, TypeScript errors fixed",
-        "de": "    *Repository Checker Konformität überprüft, alle Abhängigkeiten aktualisiert, TypeScript-Fehler behoben",
-        "ru": "    *Проверка соответствия репозиторию проверена, все зависимости обновлены, ошибки TypeScript исправлены",
-        "pt": "    *Conformidade do verificador de repositório verificada, todas as dependências atualizadas, erros de TypeScript corrigidos",
-        "nl": "    *Repository Checker conformiteit geverifieerd, alle afhankelijkheden bijgewerkt, TypeScript-fouten opgelost",
-        "fr": "    *Conformité du vérificateur de dépôt vérifiée, toutes les dépendances mises à jour, erreurs TypeScript corrigées",
-        "it": "    *Conformità del verificatore di repository verificata, tutte le dipendenze aggiornate, errori TypeScript corretti",
-        "es": "    *Conformidad del verificador de repositorio verificada, todas las dependencias actualizadas, errores de TypeScript corregidos",
-        "pl": "    *Zgodność narzędzia sprawdzającego repozytorium zweryfikowana, wszystkie zależności zaktualizowane, błędy TypeScript naprawione",
-        "uk": "    *Перевірено відповідність інструменту перевірки сховища, оновлено всі залежності, виправлено помилки TypeScript",
-        "zh-cn": "    *存储库检查器合规性已验证，所有依赖项已更新，TypeScript 错误已修复"
-      },
-      "0.5.7": {
-        "en": "    *Updated dependencies and fixed validation issues",
-        "de": "    *Abhängigkeiten aktualisiert und Validierungsprobleme behoben",
-        "ru": "    *Обновлены зависимости и исправлены проблемы валидации",
-        "pt": "    *Dependências atualizadas e problemas de validação corrigidos",
-        "nl": "    *Dependencies bijgewerkt en validatieproblemen opgelost",
-        "fr": "    *Dépendances mises à jour et problèmes de validação corrigés",
-        "it": "    *Dipendenze aggiornate e problemi di validazione risolti",
-        "es": "    *Dependencias actualizadas y problemas de validación corregidos",
-        "pl": "    *Zaktualizowano zależności i naprawiono problemy walidacji",
-        "uk": "    *Оновлено залежності та виправлено проблеми валідації",
-        "zh-cn": "    *更新了依赖项并修复了验证问题"
-      },
-      "0.5.6": {
-        "en": "    *release version",
-        "de": "    *Release-Version",
-        "ru": "    *Релизная версия",
-        "pt": "    *Versão de lançamento",
-        "nl": "    *Release-versie",
-        "fr": "    *Version de publication",
-        "it": "    *Versione di rilascio",
-        "es": "    *Versión de lanzamiento",
-        "pl": "    *Wersja wydania",
-        "uk": "    *Релізна версія",
-        "zh-cn": "    *发布版本"
-      },
-      "0.5.3": {
-        "en": "     *fixed state roles., fixed io-package.json (`info.connention`), removed uneeded `getState`, added trigger to `onReady`for `onStateChange`",
-        "de": "     *Korrigierte State-Rollen, korrigierte io-package.json (`info.connention`), entfernte unnötiges `getState`, fügte Trigger zu `onReady` für `onStateChange` hinzu",
-        "ru": "     *Исправлены роли состояний, исправлен io-package.json (`info.connention`), удален ненужный `getState`, добавлен триггер к `onReady` для `onStateChange`",
-        "pt": "     *Corrigidas as funções de estado, corrigido io-package.json (`info.connention`), removido `getState` desnecessário, adicionado gatilho a `onReady` para `onStateChange`",
-        "nl": "     *State-rollen gecorrigeerd, io-package.json (`info.connention`) gecorrigeerd, onnodige `getState` verwijderd, trigger toegevoegd aan `onReady` voor `onStateChange`",
-        "fr": "     *Rôles d'état corrigés, io-package.json corrigé (`info.connention`), `getState` inutile supprimé, déclencheur ajouté à `onReady` pour `onStateChange`",
-        "it": "     *Ruoli di stato corretti, io-package.json corretto (`info.connention`), rimosso `getState` non necessario, aggiunto trigger a `onReady` per `onStateChange`",
-        "es": "     *Roles de estado corregidos, io-package.json corregido (`info.connention`), eliminado `getState` innecesario, añadido disparador a `onReady` para `onStateChange`",
-        "pl": "     *Naprawiono role stanów, poprawiono io-package.json (`info.connention`), usunięto niepotrzebne `getState`, dodano wyzwalacz do `onReady` dla `onStateChange`",
-        "uk": "     *Виправлено ролі станів, виправлено io-package.json (`info.connention`), видалено непотрібний `getState`, додано тригер до `onReady` для `onStateChange`",
-        "zh-cn": "     *修正了状态角色，修正了 io-package.json (`info.connention`)，删除了不必要的 `getState`，为 `onReady` 添加了触发器以支持 `onStateChange`"
-      },
-      "0.5.2": {
-        "en": "    *Fixed `onStateChange`to work correct with `currentGameAppId`",
-        "de": "    *Korrigierte `onStateChange`, damit es korrekt mit `currentGameAppId` funktioniert",
-        "ru": "    *Исправлено `onStateChange`, чтобы корректно работать с `currentGameAppId`",
-        "pt": "    *Corrigido `onStateChange` para funcionar corretamente com `currentGameAppId`",
-        "nl": "    *Fix `onStateChange` om correct te werken met `currentGameAppId`",
-        "fr": "    *Correction de `onStateChange` pour fonctionner correctement avec `currentGameAppId`",
-        "it": "    *Corretto `onStateChange` per funzionare correttamente con `currentGameAppId`",
-        "es": "    *Corregido `onStateChange` para funcionar correctamente con `currentGameAppId`",
-        "pl": "    *Naprawiono `onStateChange`, aby działał poprawnie z `currentGameAppId`",
-        "uk": "    *Виправлено `onStateChange`, щоб працював коректно з `currentGameAppId`",
-        "zh-cn": "    *修复了 `onStateChange` 以正确处理 `currentGameAppId`"
       }
     },
     "titleLang": {
