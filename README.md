@@ -76,10 +76,11 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 
 ### WORK IN PROGRESS
 
-### 0.5.11 (2026-06-18)
-- (bloop16) Updated adapter and dependency versions for the next release cycle
-- (bloop16) Added current release news to io-package and aligned release metadata
-- (bloop16) Improved translation consistency in admin i18n files
+### 0.5.11 (2026-07-02)
+- (bloop16) Fixed repo-checker issues E5600/S5601 by fully migrating admin i18n to short format.
+- (bloop16) Fixed W5606 by completing missing translations and correcting placeholder formatting.
+- (bloop16) bumped key dependencies (axios, adapter-core).
+- (bloop16) #113 follow-up fixes: release-script minimum update, Node 22 tsconfig alignment, and ESLint/dependency cleanup.
 
 ### 0.5.10 (2026-05-29)
 - (bloop16) Improved Steam onboarding and setup guidance
