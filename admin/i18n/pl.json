@@ -1,5 +1,5 @@
 {
-    "API call error. %s": "Błąd wywołania interfejsu API. %S",
+    "API call error. %s": "Błąd wywołania interfejsu API. %s",
     "API error": "Błąd interfejsu API",
     "API key and Steam name are required in configuration.": "Do konfiguracji wymagany jest klucz API i nazwa Steam.",
     "API request failed for %s": "Żądanie API nie powiodło się dla %s",
@@ -65,7 +65,7 @@
     "Found game by AppID %s: %s": "Znaleziono grę według AppID %s: %s",
     "Found partial match: %s": "Znaleziono częściowe dopasowanie: %s",
     "Game '%s' not found in Recently Played API response.": "W odpowiedzi interfejsu API ostatnio odtwarzanych gier nie znaleziono gry „%s”.",
-    "Game '%s' not found in config or Steam list. Did you mean one of these? %s": "Nie znaleziono gry „%s” w konfiguracji lub na liście Steam. Czy miałeś na myśli jeden z nich? %S",
+    "Game '%s' not found in config or Steam list. Did you mean one of these? %s": "Nie znaleziono gry „%s” w konfiguracji lub na liście Steam. Czy miałeś na myśli jeden z nich? %s",
     "Game '%s' not found in config or Steam list. No similar names found.": "Nie znaleziono gry „%s” w konfiguracji lub na liście Steam. Nie znaleziono podobnych nazw.",
     "Game '%s' not found in states, cannot update.": "Nie znaleziono gry „%s” w stanach, nie można zaktualizować.",
     "Game App ID": "Identyfikator aplikacji gry",

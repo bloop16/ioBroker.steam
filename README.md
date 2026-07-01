@@ -75,7 +75,11 @@ When a game is being played, its `isPlaying` state will be set to true, and all 
 ## Changelog
 
 ### WORK IN PROGRESS
-- No unreleased changes yet.
+
+### 0.5.11 (2026-06-18)
+- (bloop16) Updated adapter and dependency versions for the next release cycle
+- (bloop16) Added current release news to io-package and aligned release metadata
+- (bloop16) Improved translation consistency in admin i18n files
 
 ### 0.5.10 (2026-05-29)
 - (bloop16) Improved Steam onboarding and setup guidance
