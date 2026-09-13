@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "steam",
-    "version": "0.5.11",
+    "version": "0.5.12",
     "news": {
+      "0.5.12": {
+        "en": "Added Node.js 26 CI testing, updated runtime and development dependencies, and retained TypeScript 6 for lint compatibility",
+        "de": "Node.js-26-CI-Tests hinzugefuegt, Laufzeit- und Entwicklungsabhaengigkeiten aktualisiert und TypeScript 6 fuer Lint-Kompatibilitaet beibehalten",
+        "ru": "Добавлено CI-тестирование Node.js 26, обновлены рабочие зависимости и зависимости разработки, TypeScript 6 сохранен для совместимости с линтером",
+        "pt": "Adicionados testes de CI com Node.js 26, atualizadas dependencias de execucao e desenvolvimento e mantido TypeScript 6 para compatibilidade com lint",
+        "nl": "Node.js 26-CI-tests toegevoegd, runtime- en ontwikkelafhankelijkheden bijgewerkt en TypeScript 6 behouden voor lintcompatibiliteit",
+        "fr": "Ajout des tests CI sous Node.js 26, mise a jour des dependances d'execution et de developpement et maintien de TypeScript 6 pour la compatibilite du lint",
+        "it": "Aggiunti test CI con Node.js 26, aggiornate le dipendenze di runtime e sviluppo e mantenuto TypeScript 6 per la compatibilita del lint",
+        "es": "Se agregaron pruebas de CI con Node.js 26, se actualizaron dependencias de ejecucion y desarrollo y se mantuvo TypeScript 6 para compatibilidad con lint",
+        "pl": "Dodano testy CI dla Node.js 26, zaktualizowano zaleznosci uruchomieniowe i deweloperskie oraz zachowano TypeScript 6 dla zgodnosci z lintem",
+        "uk": "Додано CI-тестування Node.js 26, оновлено робочі залежності та залежності розробки, TypeScript 6 збережено для сумісності з лінтером",
+        "zh-cn": "新增 Node.js 26 CI 测试，更新运行时和开发依赖，并保留 TypeScript 6 以兼容代码检查工具"
+      },
       "0.5.11": {
         "en": "Updated axios to 1.18.1 and adapter-core to 3.4.1, improved shutdown timer handling, and refreshed admin translations",
         "de": "Axios auf 1.18.1 und adapter-core auf 3.4.1 aktualisiert, Timer-Handling beim Shutdown verbessert und Admin-Uebersetzungen aktualisiert",
